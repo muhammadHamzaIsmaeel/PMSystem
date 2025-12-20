@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Status Update</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #10B981;
+            color: white;
+            padding: 20px;
+            border-radius: 8px 8px 0 0;
+        }
+        .header.rejected {
+            background-color: #EF4444;
+        }
+        .content {
+            background-color: #f9fafb;
+            padding: 30px;
+            border: 1px solid #e5e7eb;
+        }
+        .status-box {
+            background-color: #D1FAE5;
+            border-left: 4px solid #10B981;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .status-box.rejected {
+            background-color: #FEE2E2;
+            border-left-color: #EF4444;
+        }
+        .expense-details {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .expense-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #1f2937;
+        }
+        .expense-meta {
+            color: #6b7280;
+            font-size: 14px;
+            margin: 5px 0;
+        }
+        .amount {
+            font-size: 28px;
+            font-weight: bold;
+            color: #10B981;
+            margin: 15px 0;
+        }
+        .amount.rejected {
+            color: #EF4444;
+        }
+        .button {
+            display: inline-block;
+            background-color: #10B981;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+        .button.rejected {
+            background-color: #EF4444;
+        }
+        .footer {
+            text-align: center;
+            color: #6b7280;
+            font-size: 12px;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="header {% if status == 'Rejected' %}rejected{% endif %}">
+        <h1 style="margin: 0;">
+            {% if status == 'Approved' %}
+            ✅ Expense Approved
+            {% else %}
+            ❌ Expense Rejected
+            {% endif %}
+        </h1>
+    </div>
+    <div class="content">
+        <p>Hello {{ submitter_name }},</p>
+
+        <div class="status-box {% if status == 'Rejected' %}rejected{% endif %}">
+            <strong>
+                {% if status == 'Approved' %}
+                Your expense has been approved by the finance team.
+                {% else %}
+                Your expense has been rejected by the finance team.
+                {% endif %}
+            </strong>
+        </div>
+
+        <div class="expense-details">
+            <div class="expense-title">{{ category }}</div>
+
+            <div class="amount {% if status == 'Rejected' %}rejected{% endif %}">
+                ${{ amount }}
+            </div>
+
+            {% if description %}
+            <p style="color: #4b5563; margin: 10px 0;">{{ description }}</p>
+            {% endif %}
+
+            <div class="expense-meta"><strong>Project:</strong> {{ project_name }}</div>
+            <div class="expense-meta"><strong>Date:</strong> {{ expense_date }}</div>
+            <div class="expense-meta"><strong>Reviewed by:</strong> {{ reviewer_name }}</div>
+            <div class="expense-meta"><strong>Status:</strong> <span style="color: {% if status == 'Approved' %}#10B981{% else %}#EF4444{% endif %};">{{ status }}</span></div>
+        </div>
+
+        <a href="{{ expense_url }}" class="button {% if status == 'Rejected' %}rejected{% endif %}">View Expense Details</a>
+
+        {% if status == 'Approved' %}
+        <p style="color: #6b7280; font-size: 14px;">
+            Your expense will be processed according to the company reimbursement policy.
+            You should receive reimbursement within 5-7 business days.
+        </p>
+        {% else %}
+        <p style="color: #6b7280; font-size: 14px;">
+            If you believe this rejection was made in error or have questions about the decision,
+            please contact the finance team or your project manager for clarification.
+        </p>
+        {% endif %}
+    </div>
+    <div class="footer">
+        <p>This is an automated notification from the Project Management System.</p>
+        <p>For questions about expense policies, please consult the finance department.</p>
+    </div>
+</body>
+</html>

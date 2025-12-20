@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deadline Approaching</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #F59E0B;
+            color: white;
+            padding: 20px;
+            border-radius: 8px 8px 0 0;
+        }
+        .content {
+            background-color: #f9fafb;
+            padding: 30px;
+            border: 1px solid #e5e7eb;
+        }
+        .warning-box {
+            background-color: #FEF3C7;
+            border-left: 4px solid #F59E0B;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .task-details {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .task-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #1f2937;
+        }
+        .task-meta {
+            color: #6b7280;
+            font-size: 14px;
+            margin: 5px 0;
+        }
+        .deadline-highlight {
+            background-color: #FEE2E2;
+            color: #991B1B;
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+        .button {
+            display: inline-block;
+            background-color: #F59E0B;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+        .footer {
+            text-align: center;
+            color: #6b7280;
+            font-size: 12px;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1 style="margin: 0;">⏰ Deadline Reminder</h1>
+    </div>
+    <div class="content">
+        <p>Hello {{ assignee_name }},</p>
+
+        <div class="warning-box">
+            <strong>⚠️ Reminder:</strong> The deadline for your assigned task is approaching soon.
+        </div>
+
+        <div class="task-details">
+            <div class="task-title">{{ task_title }}</div>
+            {% if task_description %}
+            <p style="color: #4b5563; margin: 10px 0;">{{ task_description }}</p>
+            {% endif %}
+
+            <div class="deadline-highlight">
+                📅 Deadline: {{ deadline }}
+            </div>
+
+            <div class="task-meta"><strong>Project:</strong> {{ project_name }}</div>
+            <div class="task-meta"><strong>Priority:</strong> {{ priority }}</div>
+            <div class="task-meta"><strong>Current Status:</strong> {{ status }}</div>
+            {% if progress is not none %}
+            <div class="task-meta"><strong>Progress:</strong> {{ progress }}%</div>
+            {% endif %}
+        </div>
+
+        <a href="{{ task_url }}" class="button">Update Task Status</a>
+
+        <p style="color: #6b7280; font-size: 14px;">
+            Please ensure you complete this task before the deadline. If you need assistance or an extension,
+            please contact your project manager as soon as possible.
+        </p>
+    </div>
+    <div class="footer">
+        <p>This is an automated deadline reminder from the Project Management System.</p>
+        <p>You will receive this notification 24-48 hours before task deadlines.</p>
+    </div>
+</body>
+</html>

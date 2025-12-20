@@ -1,0 +1,46 @@
+# Universal ignores
+.DS_Store
+Thumbs.db
+*.tmp
+*.swp
+.vscode/
+.idea/
+
+# General logs and environment files
+*.log
+.env
+.env.*.local
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Node.js / Frontend ignores
+node_modules/
+dist/
+build/
+.next/
+out/
+pnpm-lock.yaml
+
+# Python / Backend ignores
+__pycache__/
+*.pyc
+.venv/
+venv/
+env/
+dist/
+*.egg-info/
+uv.lock
+uploads/
+
+# Project specific ignores
+ERD.png
+ERD.drawio
+postman_collection.json
+
+# Docker specific ignores (often in .dockerignore but good to have here too)
+# For example, if Docker context includes the whole repo
+# We will create a dedicated .dockerignore later, but these are general
+Dockerfile*
+.dockerignore
