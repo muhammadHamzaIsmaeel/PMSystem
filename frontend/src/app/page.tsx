@@ -5,56 +5,39 @@
 
 'use client'
 
+import Header from '@/components/landing/Header'
+import Footer from '@/components/landing/Footer'
 import Link from 'next/link'
 
 export default function Home() {
   return (
-    <div className="min-h-screen w-full text-gray-800 font-sans">
-      {/* Header */}
-      <header className="absolute top-0 left-0 w-full z-30 py-4">
-        <div className="container mx-auto px-6 flex justify-between items-center">
-          <div className="text-2xl font-bold text-white">ProjectFlow</div>
-          <nav className="flex items-center space-x-6">
-            <Link
-              href="/login"
-              className="text-gray-200 hover:text-white transition-colors duration-300"
-            >
-              Sign In
-            </Link>
-            <Link
-              href="/register"
-              className="bg-primary-600 hover:bg-primary-700 text-white font-semibold px-6 py-2 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105"
-            >
-              Get Started
-            </Link>
-          </nav>
-        </div>
-      </header>
+    <div className="min-h-screen w-full text-white font-sans">
+      <Header />
 
       {/* Main Content - Hero Section */}
-      <main className="min-h-screen flex items-center justify-center pt-24 pb-16 bg-gradient-to-br from-blue-700 via-blue-800 to-gray-900">
+      <main className="min-h-screen flex items-center justify-center pt-24 pb-16">
         <div className="container mx-auto px-6 text-center">
-          {/* Main Container - Adjusted for no custom glassmorphism, using shadows and transparency */}
-          <div className="bg-white bg-opacity-10 border border-gray-700 rounded-3xl shadow-2xl p-10 md:p-16">
+          {/* Main Container */}
+          <div className="bg-black bg-opacity-30 border border-gray-700 rounded-3xl shadow-2xl p-10 md:p-16 backdrop-blur-sm">
             <h1 className="text-5xl md:text-7xl font-extrabold mb-4 text-white">
-              Manage Projects, Masterfully
+              Effortless Project Mastery
             </h1>
             <p className="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto mb-10">
-              Your all-in-one solution for project management, time tracking, and
-              financial planning. Built for teams that aim for the stars.
+              The ultimate platform to streamline your projects, from initial planning to final delivery.
+              Clarity, collaboration, and control, all in one place.
             </p>
             <Link
               href="/register"
               className="bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white font-bold text-lg px-10 py-4 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105"
             >
-              Start Your Free Trial
+              Get Started for Free
             </Link>
           </div>
         </div>
       </main>
 
       {/* Features Section */}
-      <section className="py-20 bg-gray-900 text-white">
+      <section className="py-20 bg-black bg-opacity-20">
         <div className="container mx-auto px-6">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold mb-2">Why ProjectFlow?</h2>
@@ -133,12 +116,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="py-8 bg-gray-900 border-t border-gray-700 text-white">
-        <div className="container mx-auto px-6 text-center text-gray-500">
-          <p>&copy; 2025 ProjectFlow. All Rights Reserved.</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }

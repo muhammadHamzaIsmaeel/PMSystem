@@ -1,1 +1,9 @@
 @import "tailwindcss";
+
+body {
+  background-color: #020617; /* a dark blue-black fallback */
+  background-image: url('https://images.unsplash.com/photo-1536140212099-ee34e9a3d333?q=80&w=1974&auto=format&fit=crop');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+}
