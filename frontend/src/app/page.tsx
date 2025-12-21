@@ -1,128 +1,144 @@
 /**
  * Home/Landing Page
- * Redirects to dashboard if authenticated, shows landing if not
+ * Shows a modern, stylish landing page for all users.
  */
 
 'use client'
 
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { useIsAuthenticated, useAuthLoading } from '@/hooks/useAuth'
 
 export default function Home() {
-  const router = useRouter()
-  const isAuthenticated = useIsAuthenticated()
-  const isLoading = useAuthLoading()
-
-  useEffect(() => {
-    if (!isLoading && isAuthenticated) {
-      router.push('/dashboard')
-    }
-  }, [isAuthenticated, isLoading, router])
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-secondary-50">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-          <p className="mt-4 text-sm text-secondary-600">Loading...</p>
-        </div>
-      </div>
-    )
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-100">
-      <div className="container mx-auto px-4 py-16">
-        {/* Header */}
-        <div className="text-center mb-16">
-          <h1 className="text-5xl font-bold text-secondary-900 mb-4">
-            Project Management System
-          </h1>
-          <p className="text-xl text-secondary-600 mb-8">
-            Streamline your projects with powerful task management, time tracking, and financial oversight
-          </p>
-
-          <div className="flex gap-4 justify-center">
+    <div className="min-h-screen w-full text-gray-800 font-sans">
+      {/* Header */}
+      <header className="absolute top-0 left-0 w-full z-30 py-4">
+        <div className="container mx-auto px-6 flex justify-between items-center">
+          <div className="text-2xl font-bold text-white">ProjectFlow</div>
+          <nav className="flex items-center space-x-6">
             <Link
               href="/login"
-              className="bg-primary-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors"
+              className="text-gray-200 hover:text-white transition-colors duration-300"
             >
               Sign In
             </Link>
             <Link
               href="/register"
-              className="bg-white text-primary-600 border-2 border-primary-600 px-8 py-3 rounded-lg font-semibold hover:bg-primary-50 transition-colors"
+              className="bg-primary-600 hover:bg-primary-700 text-white font-semibold px-6 py-2 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105"
             >
               Get Started
             </Link>
+          </nav>
+        </div>
+      </header>
+
+      {/* Main Content - Hero Section */}
+      <main className="min-h-screen flex items-center justify-center pt-24 pb-16 bg-gradient-to-br from-blue-700 via-blue-800 to-gray-900">
+        <div className="container mx-auto px-6 text-center">
+          {/* Main Container - Adjusted for no custom glassmorphism, using shadows and transparency */}
+          <div className="bg-white bg-opacity-10 border border-gray-700 rounded-3xl shadow-2xl p-10 md:p-16">
+            <h1 className="text-5xl md:text-7xl font-extrabold mb-4 text-white">
+              Manage Projects, Masterfully
+            </h1>
+            <p className="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto mb-10">
+              Your all-in-one solution for project management, time tracking, and
+              financial planning. Built for teams that aim for the stars.
+            </p>
+            <Link
+              href="/register"
+              className="bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white font-bold text-lg px-10 py-4 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105"
+            >
+              Start Your Free Trial
+            </Link>
           </div>
         </div>
+      </main>
 
-        {/* Features */}
-        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <div className="text-3xl mb-4">📊</div>
-            <h3 className="text-xl font-semibold text-secondary-900 mb-2">
-              Project Management
-            </h3>
-            <p className="text-secondary-600">
-              Create and manage projects with full lifecycle tracking, from planning to completion.
+      {/* Features Section */}
+      <section className="py-20 bg-gray-900 text-white">
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold mb-2">Why ProjectFlow?</h2>
+            <p className="text-gray-400">
+              Everything you need to ship projects on time.
             </p>
           </div>
 
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <div className="text-3xl mb-4">⏱️</div>
-            <h3 className="text-xl font-semibold text-secondary-900 mb-2">
-              Time Tracking
-            </h3>
-            <p className="text-secondary-600">
-              Log time entries on tasks with automatic duration calculation and HRMSX integration.
-            </p>
-          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {/* Feature Card 1 */}
+            <div className="bg-gray-800 bg-opacity-50 border border-gray-700 rounded-2xl p-6 shadow-xl hover:border-primary-400 transition-all duration-300 transform hover:-translate-y-2">
+              <div className="text-primary-400 mb-4 text-4xl">📊</div>
+              <h3 className="text-xl font-bold text-white mb-2">
+                Project Management
+              </h3>
+              <p className="text-gray-400">
+                Create and manage projects with full lifecycle tracking, from planning to completion.
+              </p>
+            </div>
 
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <div className="text-3xl mb-4">💰</div>
-            <h3 className="text-xl font-semibold text-secondary-900 mb-2">
-              Financial Management
-            </h3>
-            <p className="text-secondary-600">
-              Track expenses and income with automatic profit/loss calculation for each project.
-            </p>
-          </div>
+            {/* Feature Card 2 */}
+            <div className="bg-gray-800 bg-opacity-50 border border-gray-700 rounded-2xl p-6 shadow-xl hover:border-primary-400 transition-all duration-300 transform hover:-translate-y-2">
+              <div className="text-primary-400 mb-4 text-4xl">⏱️</div>
+              <h3 className="text-xl font-bold text-white mb-2">
+                Time Tracking
+              </h3>
+              <p className="text-gray-400">
+                Log time entries on tasks with automatic duration calculation and seamless integration.
+              </p>
+            </div>
 
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <div className="text-3xl mb-4">📋</div>
-            <h3 className="text-xl font-semibold text-secondary-900 mb-2">
-              Kanban Board
-            </h3>
-            <p className="text-secondary-600">
-              Real-time drag-and-drop task management with WebSocket updates for team collaboration.
-            </p>
-          </div>
+            {/* Feature Card 3 */}
+            <div className="bg-gray-800 bg-opacity-50 border border-gray-700 rounded-2xl p-6 shadow-xl hover:border-primary-400 transition-all duration-300 transform hover:-translate-y-2">
+              <div className="text-primary-400 mb-4 text-4xl">💰</div>
+              <h3 className="text-xl font-bold text-white mb-2">
+                Financial Management
+              </h3>
+              <p className="text-gray-400">
+                Track expenses and income with automatic profit/loss calculation for each project.
+              </p>
+            </div>
 
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <div className="text-3xl mb-4">🔒</div>
-            <h3 className="text-xl font-semibold text-secondary-900 mb-2">
-              Role-Based Access
-            </h3>
-            <p className="text-secondary-600">
-              Secure RBAC with 5 roles: Admin, Project Manager, Team Member, Finance, and Viewer.
-            </p>
-          </div>
+            {/* Feature Card 4 */}
+            <div className="bg-gray-800 bg-opacity-50 border border-gray-700 rounded-2xl p-6 shadow-xl hover:border-primary-400 transition-all duration-300 transform hover:-translate-y-2">
+              <div className="text-primary-400 mb-4 text-4xl">📋</div>
+              <h3 className="text-xl font-bold text-white mb-2">
+                Kanban Board
+              </h3>
+              <p className="text-gray-400">
+                Real-time drag-and-drop task management with WebSocket updates for team collaboration.
+              </p>
+            </div>
 
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <div className="text-3xl mb-4">📈</div>
-            <h3 className="text-xl font-semibold text-secondary-900 mb-2">
-              Reports & Analytics
-            </h3>
-            <p className="text-secondary-600">
-              Comprehensive reporting with project health, team productivity, and financial insights.
-            </p>
+            {/* Feature Card 5 */}
+            <div className="bg-gray-800 bg-opacity-50 border border-gray-700 rounded-2xl p-6 shadow-xl hover:border-primary-400 transition-all duration-300 transform hover:-translate-y-2">
+              <div className="text-primary-400 mb-4 text-4xl">🔒</div>
+              <h3 className="text-xl font-bold text-white mb-2">
+                Role-Based Access
+              </h3>
+              <p className="text-gray-400">
+                Secure RBAC with 5 roles: Admin, Project Manager, Team Member, Finance, and Viewer.
+              </p>
+            </div>
+
+            {/* Feature Card 6 */}
+            <div className="bg-gray-800 bg-opacity-50 border border-gray-700 rounded-2xl p-6 shadow-xl hover:border-primary-400 transition-all duration-300 transform hover:-translate-y-2">
+              <div className="text-primary-400 mb-4 text-4xl">📈</div>
+              <h3 className="text-xl font-bold text-white mb-2">
+                Reports & Analytics
+              </h3>
+              <p className="text-gray-400">
+                Comprehensive reporting with project health, team productivity, and financial insights.
+              </p>
+            </div>
           </div>
         </div>
-      </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="py-8 bg-gray-900 border-t border-gray-700 text-white">
+        <div className="container mx-auto px-6 text-center text-gray-500">
+          <p>&copy; 2025 ProjectFlow. All Rights Reserved.</p>
+        </div>
+      </footer>
     </div>
   )
 }

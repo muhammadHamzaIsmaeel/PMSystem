@@ -7,7 +7,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 // Public routes that don't require authentication
-const PUBLIC_ROUTES = ['/login', '/register', '/forgot-password']
+const PUBLIC_ROUTES = ['/', '/login', '/register', '/forgot-password']
 
 // Auth routes that should redirect to dashboard if already authenticated
 const AUTH_ROUTES = ['/login', '/register']
