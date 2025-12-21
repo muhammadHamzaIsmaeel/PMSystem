@@ -1,9 +1,22 @@
 @import "tailwindcss";
 
 body {
-  background-color: #020617; /* a dark blue-black fallback */
+  margin: 0;
+  min-height: 100vh;
   background-image: url('/landing-bg.jpg');
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
 }
+
+/* Blur + transparent overlay */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.6); /* transparent dark color */
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px); /* Safari support */
+  z-index: -1;
+}
+
