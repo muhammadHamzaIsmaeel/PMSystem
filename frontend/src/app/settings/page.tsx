@@ -52,13 +52,42 @@ export default function SettingsPage() {
     setSaving(true)
     setMessage('')
 
+    // Basic validation before sending request
+    if (!formData.full_name.trim()) {
+      setMessage('Full name is required')
+      setMessageType('error')
+      setSaving(false)
+      return
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(formData.email)) {
+      setMessage('Please enter a valid email address')
+      setMessageType('error')
+      setSaving(false)
+      return
+    }
+
     try {
+      // Prepare the update payload - only include fields that have values
+      const updatePayload: UserUpdateRequest = {}
+
+      if (formData.full_name.trim()) {
+        updatePayload.full_name = formData.full_name
+      }
+
+      if (formData.email.trim()) {
+        updatePayload.email = formData.email
+      }
+
+      if (formData.hrmsx_user_id.trim()) {
+        updatePayload.hrmsx_user_id = formData.hrmsx_user_id
+      } else {
+        updatePayload.hrmsx_user_id = null
+      }
+
       // Update user profile via API using the correct endpoint
-      const response = await apiClient.patch(`/users/${user?.id}`, {
-        full_name: formData.full_name,
-        email: formData.email,
-        hrmsx_user_id: formData.hrmsx_user_id || null,
-      } as UserUpdateRequest)
+      const response = await apiClient.patch(`/users/${user?.id}`, updatePayload)
 
       // Update the user context with new data
       updateUser({
@@ -70,9 +99,25 @@ export default function SettingsPage() {
 
       setMessage('Profile updated successfully!')
       setMessageType('success')
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating profile:', error)
-      setMessage(error instanceof Error ? error.message : 'Failed to update profile')
+
+      // Handle the error response properly
+      let errorMessage = 'Failed to update profile'
+      if (error.response?.data?.detail) {
+        // If it's a validation error from FastAPI
+        if (Array.isArray(error.response.data.detail)) {
+          errorMessage = error.response.data.detail.map((err: any) => {
+            return `${err.loc ? err.loc.join('.') : 'field'}: ${err.msg}`
+          }).join('; ')
+        } else {
+          errorMessage = error.response.data.detail
+        }
+      } else if (error.message) {
+        errorMessage = error.message
+      }
+
+      setMessage(errorMessage)
       setMessageType('error')
     } finally {
       setSaving(false)
