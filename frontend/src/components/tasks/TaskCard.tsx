@@ -19,18 +19,18 @@ interface TaskCardProps {
 }
 
 const priorityColors = {
-  [TaskPriority.LOW]: 'bg-secondary-100 text-secondary-800',
-  [TaskPriority.MEDIUM]: 'bg-primary-100 text-primary-800',
-  [TaskPriority.HIGH]: 'bg-warning-100 text-warning-800',
-  [TaskPriority.URGENT]: 'bg-error-100 text-error-800',
-  [TaskPriority.CRITICAL]: 'bg-error-600 text-white',
+  [TaskPriority.LOW]: 'bg-slate-100 text-slate-800',
+  [TaskPriority.MEDIUM]: 'bg-blue-100 text-blue-800',
+  [TaskPriority.HIGH]: 'bg-amber-100 text-amber-800',
+  [TaskPriority.URGENT]: 'bg-red-100 text-red-800',
+  [TaskPriority.CRITICAL]: 'bg-red-600 text-white',
 }
 
 const statusColors = {
-  [TaskStatus.TODO]: 'bg-secondary-100 text-secondary-800',
-  [TaskStatus.IN_PROGRESS]: 'bg-primary-100 text-primary-800',
-  [TaskStatus.REVIEW]: 'bg-warning-100 text-warning-800',
-  [TaskStatus.DONE]: 'bg-success-100 text-success-800',
+  [TaskStatus.TODO]: 'bg-slate-100 text-slate-800',
+  [TaskStatus.IN_PROGRESS]: 'bg-blue-100 text-blue-800',
+  [TaskStatus.REVIEW]: 'bg-amber-100 text-amber-800',
+  [TaskStatus.DONE]: 'bg-emerald-100 text-emerald-800',
 }
 
 export function TaskCard({
@@ -50,14 +50,14 @@ export function TaskCard({
       : false
 
   return (
-    <div className="bg-white border border-secondary-200 rounded-lg p-5 hover:shadow-md transition-shadow">
+    <div className="bg-white border border-slate-200 rounded-lg p-5 hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1">
-          <h3 className="text-lg font-semibold text-secondary-900 mb-1">{task.title}</h3>
+          <h3 className="text-lg font-semibold text-slate-800 mb-1">{task.title}</h3>
           {showProjectLink && task.project_id && (
             <Link
               href={`/projects/${task.project_id}`}
-              className="text-sm text-primary-600 hover:text-primary-700"
+              className="text-sm text-blue-600 hover:text-blue-700"
             >
               View Project
             </Link>
@@ -75,12 +75,12 @@ export function TaskCard({
       </div>
 
       {task.description && (
-        <p className="text-sm text-secondary-700 mb-3 line-clamp-2">{task.description}</p>
+        <p className="text-sm text-slate-700 mb-3 line-clamp-2">{task.description}</p>
       )}
 
-      <div className="space-y-2 text-sm text-secondary-600 mb-4">
+      <div className="space-y-2 text-sm text-slate-600 mb-4">
         {task.due_date && (
-          <p className={isOverdue ? 'text-error-600 font-medium' : ''}>
+          <p className={isOverdue ? 'text-red-600 font-medium' : ''}>
             <span className="font-medium">Due:</span>{' '}
             {new Date(task.due_date).toLocaleDateString()}
             {isOverdue && ' (Overdue)'}
@@ -108,7 +108,7 @@ export function TaskCard({
           {canEdit && onEdit && (
             <button
               onClick={() => onEdit(task)}
-              className="px-3 py-1 text-primary-600 hover:bg-primary-50 rounded transition-colors text-sm"
+              className="px-3 py-1 text-blue-600 hover:bg-blue-50 rounded transition-colors text-sm"
             >
               Edit
             </button>
@@ -116,7 +116,7 @@ export function TaskCard({
           {canCreateSubtask && onCreateSubtask && !task.parent_task_id && (
             <button
               onClick={() => onCreateSubtask(task.id)}
-              className="px-3 py-1 text-secondary-600 hover:bg-secondary-50 rounded transition-colors text-sm"
+              className="px-3 py-1 text-slate-600 hover:bg-slate-50 rounded transition-colors text-sm"
             >
               Add Subtask
             </button>
@@ -124,7 +124,7 @@ export function TaskCard({
           {canDelete && onDelete && (
             <button
               onClick={() => onDelete(task.id)}
-              className="px-3 py-1 text-error-600 hover:bg-error-50 rounded transition-colors text-sm"
+              className="px-3 py-1 text-red-600 hover:bg-red-50 rounded transition-colors text-sm"
             >
               Delete
             </button>

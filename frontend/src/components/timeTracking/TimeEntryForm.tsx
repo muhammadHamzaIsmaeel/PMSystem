@@ -9,7 +9,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { TimeEntryCreate } from '@/types/financial'
-import { useEffect } from 'react'
+import { Task } from '@/types/task'
 
 const timeEntrySchema = z
   .object({
@@ -27,10 +27,10 @@ type TimeEntryFormData = z.infer<typeof timeEntrySchema>
 
 interface TimeEntryFormProps {
   initialData?: Partial<TimeEntryFormData>
-  onSubmit: (data: TimeEntryCreate) => void
+  onSubmit: (data: TimeEntryCreate) => Promise<void>
   onCancel?: () => void
   isLoading?: boolean
-  taskId?: string
+  tasks: Task[]
 }
 
 export function TimeEntryForm({
@@ -38,17 +38,21 @@ export function TimeEntryForm({
   onSubmit,
   onCancel,
   isLoading = false,
-  taskId,
+  tasks = [],
 }: TimeEntryFormProps) {
   const {
     register,
     handleSubmit,
     watch,
+    reset,
     formState: { errors },
   } = useForm<TimeEntryFormData>({
     resolver: zodResolver(timeEntrySchema),
     defaultValues: initialData || {
-      task_id: taskId || '',
+      task_id: '',
+      start_time: '',
+      end_time: '',
+      description: '',
     },
   })
 
@@ -69,58 +73,84 @@ export function TimeEntryForm({
 
   const duration = calculateDuration()
 
+  const handleFormSubmit = async (data: TimeEntryFormData) => {
+    await onSubmit(data)
+    // Reset form after successful submission if not editing
+    if (!initialData) {
+      reset()
+    }
+  }
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
       <div>
-        <label htmlFor="task_id" className="block text-sm font-medium text-secondary-900 mb-1">
-          Task ID *
+        <label htmlFor="task_id" className="block text-sm font-medium text-slate-900 mb-1">
+          Task <span className="text-red-500">*</span>
         </label>
-        <input
-          {...register('task_id')}
-          id="task_id"
-          type="text"
-          className="w-full px-4 py-2 border border-secondary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
-          placeholder="Enter task ID"
-          disabled={!!taskId}
-        />
-        {errors.task_id && <p className="mt-1 text-sm text-error-600">{errors.task_id.message}</p>}
+        {tasks && tasks.length > 0 ? (
+          <select
+            {...register('task_id')}
+            id="task_id"
+            disabled={isLoading}
+            className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none disabled:bg-slate-100 disabled:cursor-not-allowed"
+          >
+            <option value="">Select a task</option>
+            {tasks.map((task) => (
+              <option key={task.id} value={task.id}>
+                {task.title}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <input
+            {...register('task_id')}
+            id="task_id"
+            type="text"
+            disabled={isLoading}
+            className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none disabled:bg-slate-100"
+            placeholder="Enter task ID"
+          />
+        )}
+        {errors.task_id && <p className="mt-1 text-sm text-red-600">{errors.task_id.message}</p>}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label htmlFor="start_time" className="block text-sm font-medium text-secondary-900 mb-1">
-            Start Time *
+          <label htmlFor="start_time" className="block text-sm font-medium text-slate-900 mb-1">
+            Start Time <span className="text-red-500">*</span>
           </label>
           <input
             {...register('start_time')}
             id="start_time"
             type="datetime-local"
-            className="w-full px-4 py-2 border border-secondary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+            disabled={isLoading}
+            className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none disabled:bg-slate-100"
           />
           {errors.start_time && (
-            <p className="mt-1 text-sm text-error-600">{errors.start_time.message}</p>
+            <p className="mt-1 text-sm text-red-600">{errors.start_time.message}</p>
           )}
         </div>
 
         <div>
-          <label htmlFor="end_time" className="block text-sm font-medium text-secondary-900 mb-1">
-            End Time *
+          <label htmlFor="end_time" className="block text-sm font-medium text-slate-900 mb-1">
+            End Time <span className="text-red-500">*</span>
           </label>
           <input
             {...register('end_time')}
             id="end_time"
             type="datetime-local"
-            className="w-full px-4 py-2 border border-secondary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+            disabled={isLoading}
+            className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none disabled:bg-slate-100"
           />
           {errors.end_time && (
-            <p className="mt-1 text-sm text-error-600">{errors.end_time.message}</p>
+            <p className="mt-1 text-sm text-red-600">{errors.end_time.message}</p>
           )}
         </div>
       </div>
 
       {duration && (
-        <div className="bg-primary-50 border border-primary-200 rounded-lg p-4">
-          <p className="text-sm text-primary-800">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <p className="text-sm text-blue-800">
             <span className="font-medium">Calculated Duration:</span>{' '}
             {duration.hours > 0 && `${duration.hours}h `}
             {duration.minutes}m ({duration.total} minutes)
@@ -129,35 +159,37 @@ export function TimeEntryForm({
       )}
 
       <div>
-        <label htmlFor="description" className="block text-sm font-medium text-secondary-900 mb-1">
+        <label htmlFor="description" className="block text-sm font-medium text-slate-900 mb-1">
           Description
         </label>
         <textarea
           {...register('description')}
           id="description"
           rows={3}
-          className="w-full px-4 py-2 border border-secondary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+          disabled={isLoading}
+          className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none disabled:bg-slate-100"
           placeholder="What did you work on?"
         />
       </div>
 
-      <div className="flex gap-4 justify-end">
+      <div className="flex flex-col sm:flex-row gap-3">
+        <button
+          type="submit"
+          disabled={isLoading || !duration}
+          className="flex-1 px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          {isLoading ? 'Saving...' : initialData ? 'Update Entry' : 'Save Time Entry'}
+        </button>
         {onCancel && (
           <button
             type="button"
             onClick={onCancel}
-            className="px-6 py-2 border border-secondary-300 text-secondary-700 rounded-lg hover:bg-secondary-50 transition-colors"
+            disabled={isLoading}
+            className="flex-1 px-6 py-2 border border-slate-300 text-slate-700 font-semibold rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50"
           >
             Cancel
           </button>
         )}
-        <button
-          type="submit"
-          disabled={isLoading || !duration}
-          className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
-          {isLoading ? 'Saving...' : 'Save Time Entry'}
-        </button>
       </div>
     </form>
   )

@@ -17,36 +17,38 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen w-full grid grid-cols-1 md:grid-cols-2">
+    <div className="min-h-screen bg-slate-200 w-full grid grid-cols-1 md:grid-cols-2">
       {/* Left side: Image */}
-      <div className="hidden md:block relative">
+      <div className="hidden m-10 md:block relative">
         <Image
           src="/auth-image.jpg"
           alt="Authentication background"
           layout="fill"
           objectFit="cover"
+          className="rounded-2xl"
         />
       </div>
 
       {/* Right side: Form */}
-      <div className="bg-slate-900 flex flex-col justify-center items-center p-8">
+
+      <div className="flex flex-col justify-center items-center p-8">
         <div className="max-w-md w-full space-y-8">
           {/* Header */}
-          <div className="text-center">
-            <h1 className="text-3xl font-bold text-white">ProjectFlow</h1>
-            <h2 className="mt-6 text-2xl font-semibold text-white">
-              Create your account
-            </h2>
-            <p className="mt-2 text-sm text-gray-400">
+
+          <div className="text-start">
+            <h1 className="text-4xl font-bold text-slate-800">ProjectFlow</h1>
+
+            <h2 className="mt-6 text-3xl font-semibold text-slate-800">Create your account</h2>
+
+            <p className="mt-2 text-sm text-slate-600">
               Already have an account?{' '}
-              <Link href="/login" className="font-medium text-blue-500 hover:text-blue-400">
+              <Link href="/login" className="font-medium text-blue-600 hover:text-blue-500">
                 Sign in
               </Link>
             </p>
           </div>
 
           <RegisterForm onSuccess={handleRegisterSuccess} />
-
         </div>
       </div>
     </div>

@@ -67,7 +67,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
       )}
 
       <div>
-        <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">
+        <label htmlFor="email" className="block text-sm font-medium text-slate-800 mb-1">
           Email
         </label>
         <input
@@ -75,7 +75,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
           id="email"
           type="email"
           autoComplete="email"
-          className="w-full px-4 py-2 border border-slate-700 bg-slate-800 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+          className="w-full px-4 py-2 border border-slate-300 bg-white text-slate-800 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none placeholder-slate-400"
           placeholder="you@example.com"
         />
         {errors.email && (
@@ -84,7 +84,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
       </div>
 
       <div>
-        <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-1">
+        <label htmlFor="password" className="block text-sm font-medium text-slate-800 mb-1">
           Password
         </label>
         <input
@@ -92,7 +92,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
           id="password"
           type="password"
           autoComplete="current-password"
-          className="w-full px-4 py-2 border border-slate-700 bg-slate-800 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+          className="w-full px-4 py-2 border border-slate-300 bg-white text-slate-800 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none placeholder-slate-400"
           placeholder="••••••••"
         />
         {errors.password && (
@@ -103,7 +103,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
       <button
         type="submit"
         disabled={isLoading}
-        className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg font-medium shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       >
         {isLoading ? 'Logging in...' : 'Log in'}
       </button>

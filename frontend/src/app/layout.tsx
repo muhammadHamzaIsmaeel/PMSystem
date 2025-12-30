@@ -1,11 +1,10 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
-import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import { AuthProvider } from '@/components/providers/AuthProvider'
-import DashboardLayout from '@/components/layout/DashboardLayout'
+import { MainLayout } from '@/components/layout/MainLayout'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -37,9 +36,14 @@ export default function RootLayout({
     '/projects',
     '/tasks',
     '/expenses',
+    '/time-tracking',
     '/income',
+    '/financial',
+    '/reports',
     '/users',
-  ].some((route) => pathname.startsWith(route))
+    '/kanban', // Added for the project selection page
+    '/projects/[id]/kanban', // Added for project-specific kanban boards
+  ].some((route) => pathname.startsWith(route.replace('[id]', ''))) // Handle dynamic [id] segments
 
   return (
     <html lang="en">
@@ -48,7 +52,7 @@ export default function RootLayout({
       >
         <AuthProvider>
           {isDashboardRoute ? (
-            <DashboardLayout>{children}</DashboardLayout>
+            <MainLayout>{children}</MainLayout>
           ) : (
             children
           )}

@@ -44,6 +44,7 @@ interface IncomeBreakdownData {
   project_name: string
   amount: number
   count: number
+  [key: string]: string | number
 }
 
 interface ProjectTimelineChartProps {
@@ -85,7 +86,7 @@ export function ProjectTimelineChart({ data }: ProjectTimelineChartProps) {
 
   if (processedData.length === 0) {
     return (
-      <div className="flex items-center justify-center h-[300px] text-secondary-500">
+      <div className="flex items-center justify-center h-[300px] text-gray-500">
         No project timeline data available
       </div>
     )
@@ -123,15 +124,15 @@ export function ProjectTimelineChart({ data }: ProjectTimelineChartProps) {
       if (!originalProject) return null
 
       return (
-        <div className="bg-white border border-secondary-200 p-3 rounded-lg shadow-lg">
-          <p className="font-bold text-secondary-800">{label}</p>
-          <p className="text-sm text-secondary-600">
+        <div className="bg-white border border-gray-200 p-3 rounded-lg shadow-lg">
+          <p className="font-bold text-gray-800">{label}</p>
+          <p className="text-sm text-gray-600">
             Start: {originalProject.startDate!.toLocaleDateString()}
           </p>
-          <p className="text-sm text-secondary-600">
+          <p className="text-sm text-gray-600">
             End: {originalProject.endDate!.toLocaleDateString()}
           </p>
-          <p className="text-sm text-secondary-600">Duration: {data.duration.toFixed(0)} days</p>
+          <p className="text-sm text-gray-600">Duration: {data.duration.toFixed(0)} days</p>
           <p
             className="text-sm font-medium"
             style={{ color: statusColors[data.status] || '#64748b' }}
@@ -170,7 +171,7 @@ export function ProjectTimelineChart({ data }: ProjectTimelineChartProps) {
 export function ExpenseBreakdownChart({ data }: ExpenseBreakdownChartProps) {
   if (data.length === 0) {
     return (
-      <div className="flex items-center justify-center h-64 text-secondary-500">
+      <div className="flex items-center justify-center h-64 text-gray-500">
         No expense data available
       </div>
     )
@@ -207,7 +208,7 @@ export function ExpenseBreakdownChart({ data }: ExpenseBreakdownChartProps) {
 export function TaskCompletionChart({ data }: TaskCompletionChartProps) {
   if (data.length === 0) {
     return (
-      <div className="flex items-center justify-center h-64 text-secondary-500">
+      <div className="flex items-center justify-center h-64 text-gray-500">
         No task data available
       </div>
     )
@@ -239,7 +240,7 @@ export function TaskCompletionChart({ data }: TaskCompletionChartProps) {
 export function IncomeBreakdownChart({ data }: IncomeBreakdownChartProps) {
   if (data.length === 0) {
     return (
-      <div className="flex items-center justify-center h-64 text-secondary-500">
+      <div className="flex items-center justify-center h-64 text-gray-500">
         No income data available
       </div>
     )

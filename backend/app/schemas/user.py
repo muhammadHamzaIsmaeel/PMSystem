@@ -3,7 +3,7 @@ User Pydantic schemas for request/response validation.
 """
 
 from typing import Optional
-from pydantic import BaseModel, EmailStr, Field, ConfigDict
+from pydantic import BaseModel, EmailStr, Field, ConfigDict, field_validator
 from app.models.user import UserRole
 from app.schemas.common import Timestamps, UUIDEntity
 
@@ -16,6 +16,14 @@ class UserCreate(BaseModel):
     full_name: str = Field(..., min_length=1, max_length=255)
     role: UserRole = UserRole.TEAM_MEMBER
     hrmsx_user_id: Optional[str] = Field(None, max_length=100)
+
+    @field_validator("hrmsx_user_id")
+    @classmethod
+    def empty_str_to_none(cls, v):
+        if v == "":
+            return None
+        return v
+
 
 
 class UserLogin(BaseModel):
@@ -34,6 +42,14 @@ class UserUpdate(BaseModel):
     is_active: Optional[bool] = None
 
     model_config = ConfigDict(extra="forbid")
+
+    @field_validator("hrmsx_user_id")
+    @classmethod
+    def empty_str_to_none(cls, v):
+        if v == "":
+            return None
+        return v
+
 
 
 class UserResponse(UUIDEntity, Timestamps):

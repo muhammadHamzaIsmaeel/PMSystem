@@ -15,19 +15,19 @@ interface KanbanCardProps {
 }
 
 const priorityColors = {
-  [TaskPriority.LOW]: 'border-l-secondary-400',
-  [TaskPriority.MEDIUM]: 'border-l-primary-400',
-  [TaskPriority.HIGH]: 'border-l-warning-400',
-  [TaskPriority.URGENT]: 'border-l-error-400',
-  [TaskPriority.CRITICAL]: 'border-l-error-600',
+  [TaskPriority.LOW]: 'border-l-slate-400',
+  [TaskPriority.MEDIUM]: 'border-l-blue-400',
+  [TaskPriority.HIGH]: 'border-l-amber-400',
+  [TaskPriority.URGENT]: 'border-l-red-400',
+  [TaskPriority.CRITICAL]: 'border-l-red-600',
 }
 
 const priorityBadgeColors = {
-  [TaskPriority.LOW]: 'bg-secondary-100 text-secondary-700',
-  [TaskPriority.MEDIUM]: 'bg-primary-100 text-primary-700',
-  [TaskPriority.HIGH]: 'bg-warning-100 text-warning-700',
-  [TaskPriority.URGENT]: 'bg-error-100 text-error-700',
-  [TaskPriority.CRITICAL]: 'bg-error-600 text-white',
+  [TaskPriority.LOW]: 'bg-slate-100 text-slate-700',
+  [TaskPriority.MEDIUM]: 'bg-blue-100 text-blue-700',
+  [TaskPriority.HIGH]: 'bg-amber-100 text-amber-700',
+  [TaskPriority.URGENT]: 'bg-red-100 text-red-700',
+  [TaskPriority.CRITICAL]: 'bg-red-600 text-white',
 }
 
 export function KanbanCard({ task, subtaskCount = 0 }: KanbanCardProps) {
@@ -56,17 +56,17 @@ export function KanbanCard({ task, subtaskCount = 0 }: KanbanCardProps) {
       {...listeners}
       className={`
         bg-white border-l-4 ${priorityColors[task.priority as TaskPriority]}
-        rounded-lg shadow-sm hover:shadow-md transition-shadow
+        rounded-lg shadow-md hover:shadow-lg transition-shadow
         p-4 mb-3 cursor-grab active:cursor-grabbing
-        ${isDragging ? 'ring-2 ring-primary-500' : ''}
+        ${isDragging ? 'ring-2 ring-blue-500' : ''}
       `}
     >
       {/* Task Title */}
-      <h3 className="font-medium text-secondary-900 mb-2 line-clamp-2">{task.title}</h3>
+      <h3 className="font-medium text-slate-800 mb-2 line-clamp-2">{task.title}</h3>
 
       {/* Task Description */}
       {task.description && (
-        <p className="text-sm text-secondary-600 mb-3 line-clamp-2">{task.description}</p>
+        <p className="text-sm text-slate-600 mb-3 line-clamp-2">{task.description}</p>
       )}
 
       {/* Priority Badge */}
@@ -78,14 +78,14 @@ export function KanbanCard({ task, subtaskCount = 0 }: KanbanCardProps) {
         </span>
 
         {isOverdue && (
-          <span className="text-xs px-2 py-1 rounded-full font-medium bg-error-100 text-error-700">
+          <span className="text-xs px-2 py-1 rounded-full font-medium bg-red-100 text-red-700">
             Overdue
           </span>
         )}
       </div>
 
       {/* Task Metadata */}
-      <div className="flex items-center justify-between text-xs text-secondary-600">
+      <div className="flex items-center justify-between text-xs text-slate-600">
         <div className="space-y-1">
           {task.estimated_hours && (
             <div className="flex items-center gap-1">
@@ -127,7 +127,7 @@ export function KanbanCard({ task, subtaskCount = 0 }: KanbanCardProps) {
         </div>
 
         {task.due_date && (
-          <div className={`${isOverdue ? 'text-error-600 font-medium' : ''}`}>
+          <div className={`${isOverdue ? 'text-red-600 font-medium' : ''}`}>
             {new Date(task.due_date).toLocaleDateString('en-US', {
               month: 'short',
               day: 'numeric',

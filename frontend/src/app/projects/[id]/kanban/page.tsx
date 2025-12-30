@@ -1,22 +1,22 @@
 /**
- * Kanban Page
- * Real-time Kanban board for project task management
+ * Project-specific Kanban Board Page
  */
 
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
-import { KanbanBoard } from '@/components/kanban/KanbanBoard'
-import { Task } from '@/types/task'
+import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
+import { apiClient } from '@/lib/api'
+import { Task } from '@/types/task'
+import { KanbanBoard } from '@/components/kanban/KanbanBoard'
 
-export default function KanbanPage() {
-  const params = useParams()
+export default function ProjectKanbanPage() {
   const router = useRouter()
-  const { user } = useAuth()
-  const projectId = params.id as string
+  const pathname = usePathname()
+  const { user, token } = useAuth()
 
+  const [projectId, setProjectId] = useState<string | null>(null)
   const [tasks, setTasks] = useState<Task[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -27,57 +27,50 @@ export default function KanbanPage() {
       return
     }
 
-    fetchKanbanData()
-  }, [projectId, user])
+    const pathSegments = pathname.split('/')
+    const id = pathSegments[2] // Assuming URL is /projects/[id]/kanban
+    if (id) {
+      setProjectId(id)
+    } else {
+      setError('Project ID not found in URL.')
+      setIsLoading(false)
+    }
+  }, [user, pathname])
 
-  const fetchKanbanData = async () => {
+  useEffect(() => {
+    if (projectId && token) {
+      fetchTasks(projectId, token)
+    }
+  }, [projectId, token])
+
+  const fetchTasks = async (projId: string, authToken: string) => {
     try {
       setIsLoading(true)
       setError(null)
-
-      const token = localStorage.getItem('token')
-      if (!token) {
-        throw new Error('No authentication token found')
-      }
-
-      const response = await fetch(`/api/v1/kanban/projects/${projectId}`, {
+      // Fetch tasks associated with this project
+      const response = await apiClient.get<any>(`/tasks?project_id=${projId}`, {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${authToken}`,
         },
       })
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch Kanban board data')
-      }
-
-      const data = await response.json()
-
-      // Convert columns object to flat array of tasks
-      const allTasks: Task[] = []
-      Object.values(data.columns).forEach((columnTasks: any) => {
-        allTasks.push(...columnTasks)
-      })
-
-      setTasks(allTasks)
-    } catch (error) {
-      console.error('Error fetching Kanban data:', error)
-      setError(error instanceof Error ? error.message : 'Failed to load Kanban board')
+      setTasks(response.items || [])
+    } catch (err) {
+      console.error('Error fetching tasks for Kanban:', err)
+      setError('Failed to load tasks for the Kanban board.')
     } finally {
       setIsLoading(false)
     }
   }
 
-  if (!user) {
-    return null
-  }
+  if (!user) return null
 
   if (isLoading) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 bg-slate-50">
         <div className="flex items-center justify-center min-h-[600px]">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
-            <p className="text-secondary-600">Loading Kanban board...</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-slate-600">Loading Kanban board...</p>
           </div>
         </div>
       </div>
@@ -86,67 +79,82 @@ export default function KanbanPage() {
 
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="bg-error-50 border border-error-200 rounded-lg p-6">
-          <h2 className="text-error-900 font-semibold mb-2">Error loading Kanban board</h2>
-          <p className="text-error-700">{error}</p>
-          <button
-            onClick={() => fetchKanbanData()}
-            className="mt-4 px-4 py-2 bg-error-600 text-white rounded-lg hover:bg-error-700"
-          >
-            Retry
-          </button>
+      <div className="container mx-auto px-4 py-8 bg-slate-50 rounded-lg shadow">
+        <div className="flex items-center justify-center min-h-[600px]">
+          <div className="text-center bg-red-100 text-red-800 border border-red-200 rounded-lg p-8">
+            <h2 className="text-2xl font-bold mb-4">Error</h2>
+            <p>{error}</p>
+            <button
+              onClick={() => fetchTasks(projectId!, token!)}
+              className="mt-6 bg-red-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-700 transition-colors"
+            >
+              Try Again
+            </button>
+            <button
+              onClick={() => router.push('/kanban')}
+              className="mt-6 ml-4 bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Select Another Project
+            </button>
+          </div>
         </div>
       </div>
     )
   }
 
-  const token = localStorage.getItem('token') || ''
-
-  return (
-    <div className="container mx-auto px-4 py-8 h-screen flex flex-col">
-      {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-secondary-900">Kanban Board</h1>
-          <p className="text-secondary-600 mt-1">
-            Drag and drop tasks to update their status
-          </p>
-        </div>
-
-        <div className="flex gap-2">
-          <button
-            onClick={() => router.push(`/projects/${projectId}`)}
-            className="px-4 py-2 border border-secondary-300 text-secondary-700 rounded-lg hover:bg-secondary-50 transition-colors"
-          >
-            Back to Project
-          </button>
-          <button
-            onClick={() => router.push(`/tasks/new?project_id=${projectId}`)}
-            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
-          >
-            Add Task
-          </button>
+  if (!projectId || !token) {
+    return (
+      <div className="container mx-auto px-4 py-8 bg-slate-50 rounded-lg shadow">
+        <div className="flex items-center justify-center min-h-[600px]">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-slate-800 mb-4">Project Not Found</h2>
+            <p className="text-slate-600">Please select a project to view its Kanban board.</p>
+            <button
+              onClick={() => router.push('/kanban')}
+              className="mt-6 bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Select Project
+            </button>
+          </div>
         </div>
       </div>
+    )
+  }
 
-      {/* Kanban Board */}
-      {tasks.length === 0 ? (
-        <div className="flex-1 flex items-center justify-center">
+  if (tasks.length === 0 && !isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8 bg-slate-50 rounded-lg shadow">
+        <div className="flex items-center justify-center min-h-[600px]">
           <div className="text-center">
-            <p className="text-secondary-600 mb-4">No tasks found for this project</p>
+            <h2 className="text-2xl font-bold text-slate-800 mb-4">No Tasks Found</h2>
+            <p className="text-slate-600">There are no tasks for this project yet.</p>
+            {/* Optionally add a button to create a task */}
             <button
-              onClick={() => router.push(`/tasks/new?project_id=${projectId}`)}
-              className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+              onClick={() => router.push(`/projects/${projectId}/tasks/new`)}
+              className="mt-6 bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
             >
               Create First Task
             </button>
           </div>
         </div>
-      ) : (
-        <div className="flex-1 overflow-hidden">
-          <KanbanBoard projectId={projectId} initialTasks={tasks} token={token} />
-        </div>
+      </div>
+    )
+  }
+
+
+  return (
+    <div className="flex flex-col h-full bg-slate-50 p-4 rounded-lg shadow min-h-[calc(100vh-10rem)]">
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-3xl font-bold text-slate-800">Kanban Board</h1>
+        <button
+          onClick={() => router.push(`/projects/${projectId}/tasks/new`)}
+          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          New Task
+        </button>
+      </div>
+      {tasks && tasks.length > 0 && token && (
+        <KanbanBoard projectId={projectId} initialTasks={tasks} token={token} />
       )}
     </div>
   )

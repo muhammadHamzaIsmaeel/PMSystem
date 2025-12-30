@@ -81,8 +81,8 @@ export default function ProjectsPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
-            <p className="text-secondary-600">Loading projects...</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+            <p className="text-gray-400">Loading projects...</p>
           </div>
         </div>
       </div>
@@ -90,10 +90,10 @@ export default function ProjectsPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 bg-slate-50/50 rounded-lg">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-secondary-900">Projects</h1>
-        <p className="text-secondary-600 mt-2">
+        <h1 className="text-3xl font-bold text-slate-800">Projects</h1>
+        <p className="text-slate-600 mt-2">
           Manage and track all your projects in one place
         </p>
       </div>

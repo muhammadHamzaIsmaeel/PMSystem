@@ -17,11 +17,11 @@ interface ProjectCardProps {
 }
 
 const statusColors = {
-  [ProjectStatus.PLANNING]: 'bg-secondary-100 text-secondary-800',
-  [ProjectStatus.IN_PROGRESS]: 'bg-primary-100 text-primary-800',
-  [ProjectStatus.ON_HOLD]: 'bg-warning-100 text-warning-800',
-  [ProjectStatus.COMPLETED]: 'bg-success-100 text-success-800',
-  [ProjectStatus.CANCELLED]: 'bg-error-100 text-error-800',
+  [ProjectStatus.PLANNING]: 'bg-blue-950 text-blue-300',
+  [ProjectStatus.IN_PROGRESS]: 'bg-amber-950 text-amber-300',
+  [ProjectStatus.ON_HOLD]: 'bg-gray-950 text-gray-300',
+  [ProjectStatus.COMPLETED]: 'bg-emerald-950 text-emerald-300',
+  [ProjectStatus.CANCELLED]: 'bg-red-950 text-red-300',
 }
 
 export function ProjectCard({ project, onEdit, onDelete }: ProjectCardProps) {
@@ -29,16 +29,16 @@ export function ProjectCard({ project, onEdit, onDelete }: ProjectCardProps) {
   const canDelete = useHasRole([UserRole.ADMIN])
 
   return (
-    <div className="bg-white border border-secondary-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+    <div className="bg-white border border-slate-200 rounded-lg p-6 shadow-xl hover:shadow-2xl transition-shadow">
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1">
           <Link
             href={`/projects/${project.id}`}
-            className="text-xl font-semibold text-secondary-900 hover:text-primary-600"
+            className="text-xl font-semibold text-slate-800 hover:text-blue-500"
           >
             {project.name}
           </Link>
-          <p className="text-sm text-secondary-600 mt-1">Client: {project.client_name}</p>
+          <p className="text-sm text-gray-800 mt-1">Client: {project.client_name}</p>
         </div>
 
         <span
@@ -51,10 +51,10 @@ export function ProjectCard({ project, onEdit, onDelete }: ProjectCardProps) {
       </div>
 
       {project.description && (
-        <p className="text-sm text-secondary-700 mb-4 line-clamp-2">{project.description}</p>
+        <p className="text-sm text-gray-800 mb-4 line-clamp-2">{project.description}</p>
       )}
 
-      <div className="flex items-center justify-between text-sm text-secondary-600">
+      <div className="flex items-center justify-between text-sm text-gray-800">
         <div className="space-y-1">
           {project.budget && (
             <p>
@@ -74,7 +74,7 @@ export function ProjectCard({ project, onEdit, onDelete }: ProjectCardProps) {
             {canEdit && onEdit && (
               <button
                 onClick={() => onEdit(project)}
-                className="px-3 py-1 text-primary-600 hover:bg-primary-50 rounded transition-colors"
+                className="px-3 py-1 text-blue-600 hover:bg-blue-900 rounded transition-colors"
               >
                 Edit
               </button>
@@ -82,7 +82,7 @@ export function ProjectCard({ project, onEdit, onDelete }: ProjectCardProps) {
             {canDelete && onDelete && (
               <button
                 onClick={() => onDelete(project.id)}
-                className="px-3 py-1 text-error-600 hover:bg-error-50 rounded transition-colors"
+                className="px-3 py-1 text-red-400 hover:bg-red-900 rounded transition-colors"
               >
                 Delete
               </button>

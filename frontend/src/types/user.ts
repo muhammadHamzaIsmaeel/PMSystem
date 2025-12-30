@@ -35,6 +35,12 @@ export interface TokenResponse {
   user: User
 }
 
+export interface UserUpdateRequest {
+  full_name?: string
+  email?: string
+  hrmsx_user_id?: string | null
+}
+
 export interface RefreshTokenRequest {
   refresh_token: string
 }

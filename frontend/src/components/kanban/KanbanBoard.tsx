@@ -5,7 +5,7 @@
 
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import {
   DndContext,
   DragOverlay,
@@ -62,13 +62,13 @@ export function KanbanBoard({ projectId, initialTasks, token }: KanbanBoardProps
   }, [tasks])
 
   // Handle real-time task updates via WebSocket
-  const handleTaskUpdate = (taskId: string, newStatus: string, updatedBy: string) => {
+  const handleTaskUpdate = useCallback((taskId: string, newStatus: string, updatedBy: string) => {
     setTasks((prevTasks) =>
       prevTasks.map((task) =>
         task.id === taskId ? { ...task, status: newStatus as TaskStatus } : task
       )
     )
-  }
+  }, [])
 
   const { connectionStatus } = useKanbanRealtime({
     projectId,
@@ -187,13 +187,13 @@ export function KanbanBoard({ projectId, initialTasks, token }: KanbanBoardProps
           <div
             className={`w-2 h-2 rounded-full ${
               connectionStatus === 'connected'
-                ? 'bg-success-500'
+                ? 'bg-emerald-500'
                 : connectionStatus === 'connecting'
-                ? 'bg-warning-500 animate-pulse'
-                : 'bg-error-500'
+                ? 'bg-amber-500 animate-pulse'
+                : 'bg-red-500'
             }`}
           />
-          <span className="text-sm text-secondary-600">
+          <span className="text-sm text-slate-600">
             {connectionStatus === 'connected'
               ? 'Real-time updates active'
               : connectionStatus === 'connecting'

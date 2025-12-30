@@ -93,6 +93,14 @@ export interface TimeEntry {
   updated_at: string
 }
 
+export interface TimeEntryResponse {
+  items: TimeEntry[]
+  total: number
+  skip: number
+  limit: number
+  has_more: boolean
+}
+
 export interface TimeEntryCreate {
   start_time: string
   end_time: string

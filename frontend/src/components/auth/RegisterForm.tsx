@@ -74,7 +74,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
       )}
 
       <div>
-        <label htmlFor="full_name" className="block text-sm font-medium text-gray-300 mb-1">
+        <label htmlFor="full_name" className="block text-sm font-medium text-slate-800 mb-1">
           Full Name
         </label>
         <input
@@ -82,7 +82,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
           id="full_name"
           type="text"
           autoComplete="name"
-          className="w-full px-4 py-2 border border-slate-700 bg-slate-800 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+          className="w-full px-4 py-2 border border-slate-300 bg-white text-slate-800 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none placeholder-slate-400"
           placeholder="John Doe"
         />
         {errors.full_name && (
@@ -91,7 +91,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
       </div>
 
       <div>
-        <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">
+        <label htmlFor="email" className="block text-sm font-medium text-slate-800 mb-1">
           Email
         </label>
         <input
@@ -99,7 +99,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
           id="email"
           type="email"
           autoComplete="email"
-          className="w-full px-4 py-2 border border-slate-700 bg-slate-800 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+          className="w-full px-4 py-2 border border-slate-300 bg-white text-slate-800 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none placeholder-slate-400"
           placeholder="you@example.com"
         />
         {errors.email && (
@@ -108,7 +108,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
       </div>
 
       <div>
-        <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-1">
+        <label htmlFor="password" className="block text-sm font-medium text-slate-800 mb-1">
           Password
         </label>
         <input
@@ -116,7 +116,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
           id="password"
           type="password"
           autoComplete="new-password"
-          className="w-full px-4 py-2 border border-slate-700 bg-slate-800 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+          className="w-full px-4 py-2 border border-slate-300 bg-white text-slate-800 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none placeholder-slate-400"
           placeholder="••••••••"
         />
         {errors.password && (
@@ -125,13 +125,13 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
       </div>
 
       <div>
-        <label htmlFor="role" className="block text-sm font-medium text-gray-300 mb-1">
+        <label htmlFor="role" className="block text-sm font-medium text-slate-800 mb-1">
           Role
         </label>
         <select
           {...register('role')}
           id="role"
-          className="w-full px-4 py-2 border border-slate-700 bg-slate-800 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+          className="w-full px-4 py-2 border border-slate-300 bg-white text-slate-800 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none"
         >
           <option value={UserRole.TEAM_MEMBER}>Team Member</option>
           <option value={UserRole.PROJECT_MANAGER}>Project Manager</option>
@@ -145,14 +145,14 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
       </div>
 
       <div>
-        <label htmlFor="hrmsx_user_id" className="block text-sm font-medium text-gray-300 mb-1">
-          HRMSX User ID <span className="text-gray-500">(Optional)</span>
+        <label htmlFor="hrmsx_user_id" className="block text-sm font-medium text-slate-800 mb-1">
+          HRMSX User ID <span className="text-slate-500">(Optional)</span>
         </label>
         <input
           {...register('hrmsx_user_id')}
           id="hrmsx_user_id"
           type="text"
-          className="w-full px-4 py-2 border border-slate-700 bg-slate-800 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+          className="w-full px-4 py-2 border border-slate-300 bg-white text-slate-800 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none placeholder-slate-400"
           placeholder="HRMSX_USER_123"
         />
         {errors.hrmsx_user_id && (
@@ -163,7 +163,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
       <button
         type="submit"
         disabled={isLoading}
-        className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg font-medium shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       >
         {isLoading ? 'Creating account...' : 'Create account'}
       </button>

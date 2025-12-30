@@ -8,6 +8,7 @@ from typing import List
 
 from app.core.deps import get_current_user_from_token
 from app.models.time_entry import TimeEntry
+from app.models.task import Task
 from app.models.user import User
 from app.schemas.time_entry import TimeEntryCreate, TimeEntryUpdate, TimeEntryResponse
 from app.schemas.common import PaginatedResponse, MessageResponse
@@ -26,15 +27,15 @@ async def get_time_entries(
     """Get time entries with role-based filtering."""
     query = []
     if current_user.role == "TeamMember":
-        query.append(TimeEntry.user_id == current_user.id)
+        query.append(TimeEntry.user_id == str(current_user.id))
     if task_id:
-        query.append(TimeEntry.task_id == task_id)
+        query.append(TimeEntry.task_id == str(task_id))
     
     entries = await TimeEntry.find(*query).skip(skip).limit(limit).to_list()
     total = await TimeEntry.find(*query).count()
 
     return PaginatedResponse(
-        items=[TimeEntryResponse.model_validate(e) for e in entries],
+        items=[TimeEntryResponse.model_validate(e.model_dump(mode='json')) for e in entries],
         total=total,
         skip=skip,
         limit=limit,
@@ -48,16 +49,28 @@ async def create_time_entry(
     current_user: User = Depends(get_current_user_from_token),
 ):
     """Create time entry with auto-duration calculation."""
+    
+    # Fetch task to get project_id
+    task = await Task.get(entry_data.task_id)
+    if not task:
+        raise NotFoundException(detail="Task not found")
+    
+    # Calculate duration
     duration = int((entry_data.end_time - entry_data.start_time).total_seconds() / 60)
 
+    # Create time entry
     entry = TimeEntry(
-        **entry_data.model_dump(),
-        user_id=current_user.id,
+        start_time=entry_data.start_time,
+        end_time=entry_data.end_time,
+        description=entry_data.description,
+        task_id=str(entry_data.task_id),
+        project_id=str(task.project_id),  # Get from task
+        user_id=str(current_user.id),  # Convert ObjectId to string
         duration_minutes=duration,
     )
 
     await entry.insert()
-    return TimeEntryResponse.model_validate(entry)
+    return TimeEntryResponse.model_validate(entry.model_dump(mode='json'))
 
 
 @router.put("/{entry_id}", response_model=TimeEntryResponse)
@@ -73,7 +86,7 @@ async def update_time_entry(
         raise NotFoundException(detail="Time entry not found")
 
     # Authorization: Ensure team members can only update their own entries
-    if current_user.role == "TeamMember" and entry.user_id != current_user.id:
+    if current_user.role == "TeamMember" and entry.user_id != str(current_user.id):
         raise HTTPException(status_code=403, detail="Not authorized to update this time entry")
 
     update_data = entry_data.model_dump(exclude_unset=True)
@@ -86,7 +99,7 @@ async def update_time_entry(
             entry.duration_minutes = int((entry.end_time - entry.start_time).total_seconds() / 60)
 
     await entry.save()
-    return TimeEntryResponse.model_validate(entry)
+    return TimeEntryResponse.model_validate(entry.model_dump(mode='json'))
 
 
 @router.delete("/{entry_id}", response_model=MessageResponse)
@@ -101,7 +114,7 @@ async def delete_time_entry(
         raise NotFoundException(detail="Time entry not found")
         
     # Authorization: Ensure team members can only delete their own entries
-    if current_user.role == "TeamMember" and entry.user_id != current_user.id:
+    if current_user.role == "TeamMember" and entry.user_id != str(current_user.id):
         raise HTTPException(status_code=403, detail="Not authorized to delete this time entry")
 
     await entry.delete()

@@ -4,12 +4,26 @@ Handles connections, room management, and task update broadcasting
 """
 
 from typing import Dict, Set
-from fastapi import WebSocket, WebSocketDisconnect, Depends, HTTPException, status
+from fastapi import WebSocket, WebSocketDisconnect, HTTPException, status
 from jose import jwt, JWTError
 import json
+import logging
 
 from app.core.config import settings
-from app.services.auth_service import AuthService
+from app.services.auth_service import AuthService # Not directly used but might be needed elsewhere for context
+from app.models.user import User # Needed for get_user_id_from_websocket_token
+from app.core.security import decode_token # Needed for get_user_id_from_websocket_token
+
+
+# Configure logger
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+# Basic console handler for debugging
+handler = logging.StreamHandler()
+formatter = logging.Formatter('%(levelname)s: %(asctime)s - %(message)s')
+handler.setFormatter(formatter)
+if not logger.handlers:
+    logger.addHandler(handler)
 
 
 class ConnectionManager:
@@ -34,6 +48,7 @@ class ConnectionManager:
             project_id: Project room to join
         """
         await websocket.accept()
+        logger.info(f"Accepted WebSocket connection for user {user_id} in project {project_id}.")
 
         # Create project room if it doesn't exist
         if project_id not in self.project_rooms:
@@ -51,6 +66,8 @@ class ConnectionManager:
             "project_id": project_id,
             "message": f"Connected to project {project_id} Kanban board"
         })
+        logger.info(f"Sent 'connection_established' to user {user_id} for project {project_id}.")
+
 
     def disconnect(self, websocket: WebSocket):
         """
@@ -60,9 +77,11 @@ class ConnectionManager:
             websocket: WebSocket connection to remove
         """
         if websocket not in self.connection_metadata:
+            logger.warning("Attempted to disconnect a WebSocket not in metadata.")
             return
 
         user_id, project_id = self.connection_metadata[websocket]
+        logger.info(f"Disconnecting WebSocket for user {user_id} from project {project_id}.")
 
         # Remove from project room
         if project_id in self.project_rooms:
@@ -70,10 +89,13 @@ class ConnectionManager:
 
             # Clean up empty rooms
             if not self.project_rooms[project_id]:
+                logger.info(f"Project room {project_id} is now empty. Deleting room.")
                 del self.project_rooms[project_id]
 
         # Remove metadata
         del self.connection_metadata[websocket]
+        logger.info(f"Disconnected and cleaned up WebSocket for user {user_id} from project {project_id}.")
+
 
     async def broadcast_task_update(
         self,
@@ -94,6 +116,7 @@ class ConnectionManager:
             exclude_connection: Optional connection to exclude (e.g., the sender)
         """
         if project_id not in self.project_rooms:
+            logger.warning(f"Attempted to broadcast to non-existent room {project_id}.")
             return
 
         message = {
@@ -104,23 +127,25 @@ class ConnectionManager:
             "updated_by": updated_by,
             "timestamp": None  # Will be set by receiver's local time
         }
+        logger.info(f"Broadcasting task update for project {project_id}: Task {task_id} to {new_status} by {updated_by}.")
 
         # Broadcast to all connections in project room
         disconnected = []
-        for connection in self.project_rooms[project_id]:
+        for connection in list(self.project_rooms[project_id]): # Use list to avoid issues during set modification
             # Skip the connection that made the change (optional)
             if exclude_connection and connection == exclude_connection:
                 continue
 
             try:
                 await connection.send_json(message)
-            except Exception:
-                # Connection is dead, mark for removal
+            except Exception as e:
+                logger.error(f"Failed to send broadcast to a WebSocket connection for user {self.connection_metadata.get(connection, ('unknown',))[0]} in project {project_id}: {e}")
                 disconnected.append(connection)
 
         # Clean up dead connections
         for connection in disconnected:
             self.disconnect(connection)
+
 
     async def send_personal_message(self, websocket: WebSocket, message: dict):
         """
@@ -132,7 +157,8 @@ class ConnectionManager:
         """
         try:
             await websocket.send_json(message)
-        except Exception:
+        except Exception as e:
+            logger.error(f"Failed to send personal message to a WebSocket connection: {e}")
             self.disconnect(websocket)
 
 
@@ -140,81 +166,107 @@ class ConnectionManager:
 manager = ConnectionManager()
 
 
-async def get_current_user_from_token(token: str) -> str:
-    """
-    Extract and validate user from JWT token for WebSocket authentication
-
-    Args:
-        token: JWT token string
-
-    Returns:
-        user_id: Authenticated user ID
-
-    Raises:
-        HTTPException: If token is invalid
-    """
+# Local function to extract and validate user ID from raw JWT token for WebSocket
+async def get_user_id_from_websocket_token(token: str) -> str:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
-
     try:
-        payload = jwt.decode(
-            token,
-            settings.SECRET_KEY,
-            algorithms=[settings.ALGORITHM]
-        )
+        payload = decode_token(token)
+
+        if payload is None:
+            logger.warning("Token decoding returned None payload.")
+            raise credentials_exception
+
+        if payload.get("type") != "access":
+            logger.warning(f"Invalid token type: {payload.get('type')}")
+            raise credentials_exception
+
         user_id: str = payload.get("sub")
         if user_id is None:
+            logger.warning("Token payload 'sub' (user_id) is missing.")
             raise credentials_exception
         return user_id
-    except JWTError:
+    except JWTError as e:
+        logger.error(f"JWT validation failed: {e}")
+        raise credentials_exception
+    except Exception as e:
+        logger.exception(f"Unexpected error during token validation: {e}")
         raise credentials_exception
 
 
 async def websocket_endpoint(websocket: WebSocket, project_id: str, token: str):
     """
     WebSocket endpoint handler for Kanban real-time updates
-
-    Args:
-        websocket: WebSocket connection
-        project_id: Project ID to join
-        token: JWT authentication token
     """
+    logger.info(f"Attempting WebSocket connection for project {project_id} with token starting: {token[:10]}...")
+    user_id = None # Initialize user_id to None
     try:
-        # Authenticate user from token
-        user_id = await get_current_user_from_token(token)
+        user_id = await get_user_id_from_websocket_token(token)
+        logger.info(f"User {user_id} authenticated for WebSocket project {project_id}.")
 
-        # Connect to project room
         await manager.connect(websocket, user_id, project_id)
+        logger.info(f"WebSocket connected: User {user_id} joined project {project_id} room.")
 
-        # Keep connection alive and handle incoming messages
-        try:
-            while True:
-                # Receive message from client
-                data = await websocket.receive_text()
+        while True:
+            # Keep connection alive and handle incoming messages
+            data = await websocket.receive_text()
+            logger.info(f"Received WebSocket message from user {user_id} in project {project_id}: {data}")
 
-                # Parse message
-                try:
-                    message = json.loads(data)
-                    message_type = message.get("type")
+            try:
+                message = json.loads(data)
+                message_type = message.get("type")
 
-                    # Handle ping/pong for keep-alive
-                    if message_type == "ping":
-                        await websocket.send_json({"type": "pong"})
+                if message_type == "ping":
+                    await websocket.send_json({"type": "pong"})
+                    logger.debug(f"Sent pong to user {user_id} in project {project_id}.")
+                elif message_type == "task_update":
+                    task_id = message.get("task_id")
+                    new_status = message.get("new_status")
+                    if task_id and new_status:
+                        # Call TaskService to update the DB
+                        from app.services.task_service import TaskService
+                        from app.models.task import Task
+                        logger.info(f"Updating task {task_id} status to {new_status} in DB.")
+                        await TaskService.update_task_status_by_id(
+                            task_id=task_id,
+                            new_status=new_status,
+                            user_id=user_id # User who initiated the update
+                        )
+                        # Broadcast the update to other clients in the project room
+                        await manager.broadcast_task_update(
+                            project_id=project_id,
+                            task_id=task_id,
+                            new_status=new_status,
+                            updated_by=user_id,
+                            exclude_connection=websocket # Exclude sender from broadcast
+                        )
+                        logger.info(f"Task {task_id} status updated to {new_status} and broadcasted.")
+                    else:
+                        logger.warning(f"Invalid task_update message received: {message}")
+                else:
+                    logger.warning(f"Unhandled WebSocket message type: {message_type}")
 
-                    # Other message types can be handled here
+            except json.JSONDecodeError:
+                logger.error(f"Invalid JSON message received from user {user_id} in project {project_id}: {data}")
+                await manager.send_personal_message(websocket, {
+                    "type": "error",
+                    "message": "Invalid JSON message"
+                })
+            except Exception as e:
+                logger.exception(f"Error processing WebSocket message from user {user_id} in project {project_id}: {e}")
 
-                except json.JSONDecodeError:
-                    await manager.send_personal_message(websocket, {
-                        "type": "error",
-                        "message": "Invalid JSON message"
-                    })
-
-        except WebSocketDisconnect:
-            manager.disconnect(websocket)
-
-    except HTTPException:
-        # Authentication failed
+    except WebSocketDisconnect:
+        logger.info(f"WebSocket disconnected from user {user_id if user_id else 'unauthenticated'} in project {project_id}.")
+        manager.disconnect(websocket)
+    except HTTPException as e:
+        logger.error(f"WebSocket authentication failed for project {project_id}. Detail: {e.detail}, Status: {e.status_code}")
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+    except JWTError as e:
+        logger.error(f"JWT validation failed for WebSocket project {project_id}. Error: {e}")
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+    except Exception as e:
+        logger.exception(f"Unhandled exception during WebSocket connection for project {project_id}: {e}")
+        await websocket.close(code=status.WS_1011_INTERNAL_ERROR)

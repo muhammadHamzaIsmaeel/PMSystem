@@ -3,11 +3,11 @@ User endpoints: profile retrieval, HRMSX sync, user management.
 """
 
 from typing import List
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 
 from app.core.deps import get_db, get_current_user_from_token, require_role
 from app.services.auth_service import AuthService
-from app.schemas.user import UserResponse
+from app.schemas.user import UserResponse, UserUpdate
 from app.schemas.common import MessageResponse
 from app.models.user import User
 
@@ -53,6 +53,53 @@ async def get_current_user(
     """
     user_id = current_user.id
     return await AuthService.get_user_by_id(user_id)
+
+
+@router.patch("/{user_id}", response_model=UserResponse)
+async def update_user(
+    user_id: str,
+    user_update: UserUpdate,
+    current_user: User = Depends(get_current_user_from_token),
+    db = Depends(get_db),
+):
+    """
+    Update user profile.
+
+    Users can update their own profile. Admins can update any user profile.
+    """
+    # Check if the user exists
+    user = await User.get(user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Check permissions - users can only update their own profile unless they're admin
+    if str(user.id) != str(current_user.id):
+        if current_user.role != "Admin":
+            raise HTTPException(status_code=403, detail="Not authorized to update this user")
+
+    # Update fields if provided
+    if user_update.full_name is not None:
+        user.full_name = user_update.full_name
+    if user_update.email is not None:
+        user.email = user_update.email
+    if user_update.hrmsx_user_id is not None:
+        user.hrmsx_user_id = user_update.hrmsx_user_id
+    if user_update.role is not None and current_user.role == "Admin":
+        user.role = user_update.role
+    if user_update.is_active is not None and current_user.role == "Admin":
+        user.is_active = user_update.is_active
+
+    # Update timestamp
+    from datetime import datetime
+    user.updated_at = datetime.utcnow()
+
+    # Save changes
+    await user.save()
+
+    # Return updated user
+    user_data_for_response = user.model_dump()
+    user_data_for_response["id"] = str(user.id)
+    return UserResponse.model_validate(user_data_for_response)
 
 
 @router.post("/sync-hrmsx", response_model=MessageResponse)

@@ -2,7 +2,6 @@
  * WebSocket client utilities with automatic reconnection
  * Handles connection lifecycle and message passing
  */
-
 export type WebSocketStatus = 'connecting' | 'connected' | 'disconnected' | 'error'
 
 export interface WebSocketMessage {
@@ -37,6 +36,11 @@ export class WebSocketClient {
     }
   }
 
+  // New method to control reconnection behavior
+  public setShouldReconnect(value: boolean): void {
+    this.shouldReconnect = value
+  }
+
   connect(): void {
     if (this.ws?.readyState === WebSocket.OPEN) {
       return
@@ -62,8 +66,8 @@ export class WebSocketClient {
         }
       }
 
-      this.ws.onerror = (error) => {
-        console.error('WebSocket error:', error)
+      this.ws.onerror = (event) => {
+        console.error('WebSocket error event:', event)
         this.updateStatus('error')
       }
 
@@ -151,11 +155,18 @@ export class WebSocketClient {
   }
 }
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
+
 /**
  * Create WebSocket URL for Kanban board
  */
 export function createKanbanWebSocketUrl(projectId: string, token: string): string {
-  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-  const host = process.env.NEXT_PUBLIC_API_URL?.replace(/^https?:\/\//, '') || 'localhost:8000'
-  return `${protocol}//${host}/api/v1/kanban/ws?project_id=${projectId}&token=${token}`
+  const protocol = API_BASE_URL.startsWith('https') ? 'wss:' : 'ws:'
+  const url = new URL(API_BASE_URL) // Use URL object for easier manipulation
+  url.protocol = protocol
+  url.pathname = url.pathname.replace(/\/$/, '') + '/kanban/ws' // Ensure no double slashes, add ws path
+  url.searchParams.set('project_id', projectId)
+  url.searchParams.set('token', token)
+
+  return url.toString()
 }

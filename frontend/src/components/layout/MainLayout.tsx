@@ -9,6 +9,8 @@
 import { Navbar } from '@/components/shared/Navbar'
 import { Sidebar } from '@/components/shared/Sidebar'
 import { useAuthLoading } from '@/hooks/useAuth'
+import { useState } from 'react'
+import { clsx } from 'clsx'
 
 interface MainLayoutProps {
   children: React.ReactNode
@@ -16,6 +18,7 @@ interface MainLayoutProps {
 
 export function MainLayout({ children }: MainLayoutProps) {
   const isLoading = useAuthLoading()
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
 
   if (isLoading) {
     return (
@@ -34,10 +37,13 @@ export function MainLayout({ children }: MainLayoutProps) {
       <Navbar />
 
       {/* Sidebar */}
-      <Sidebar />
+      <Sidebar collapsed={isSidebarCollapsed} setCollapsed={setIsSidebarCollapsed} />
 
       {/* Main Content Area */}
-      <main className="ml-64 pt-16">
+      <main className={clsx("pt-16 transition-all duration-300", {
+        "ml-64": !isSidebarCollapsed,
+        "ml-20": isSidebarCollapsed,
+      })}>
         <div className="p-6">{children}</div>
       </main>
     </div>
