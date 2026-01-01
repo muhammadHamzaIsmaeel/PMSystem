@@ -228,12 +228,26 @@ async def websocket_endpoint(websocket: WebSocket, project_id: str, token: str):
                     if task_id and new_status:
                         # Call TaskService to update the DB
                         from app.services.task_service import TaskService
-                        from app.models.task import Task
+                        from app.models.task import Task, TaskStatus
+                        from app.schemas.task import TaskUpdate
+                        from app.models.user import User, UserRole
                         logger.info(f"Updating task {task_id} status to {new_status} in DB.")
-                        await TaskService.update_task_status_by_id(
+
+                        # Create a TaskUpdate object with the new status
+                        task_update = TaskUpdate(status=TaskStatus(new_status))
+
+                        # Get the user's role for permission checking
+                        user = await User.get(user_id)
+                        if not user:
+                            logger.error(f"User {user_id} not found for task update")
+                            continue
+
+                        # Update the task
+                        await TaskService.update_task(
                             task_id=task_id,
-                            new_status=new_status,
-                            user_id=user_id # User who initiated the update
+                            task_data=task_update,
+                            user_id=user_id,
+                            user_role=user.role
                         )
                         # Broadcast the update to other clients in the project room
                         await manager.broadcast_task_update(

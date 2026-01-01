@@ -51,8 +51,8 @@ export default function IncomePage() {
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
-            <p className="text-secondary-600">Loading income...</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading income...</p>
           </div>
         </div>
       </div>
@@ -63,8 +63,8 @@ export default function IncomePage() {
     <div className="container mx-auto px-4 py-8">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-secondary-900">Income</h1>
-          <p className="text-secondary-600 mt-2">
+          <h1 className="text-3xl font-bold text-gray-900">Income</h1>
+          <p className="text-gray-600 mt-2">
             Track project revenue and income
           </p>
         </div>
@@ -72,7 +72,7 @@ export default function IncomePage() {
         {canCreate && (
           <button
             onClick={() => router.push('/income/new')}
-            className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             Add Income
           </button>
@@ -80,12 +80,12 @@ export default function IncomePage() {
       </div>
 
       {incomeList.length === 0 ? (
-        <div className="text-center py-12 bg-white border border-secondary-200 rounded-lg">
-          <p className="text-secondary-600">No income entries found</p>
+        <div className="text-center py-12 bg-white border border-gray-200 rounded-lg">
+          <p className="text-gray-600">No income entries found</p>
           {canCreate && (
             <button
               onClick={() => router.push('/income/new')}
-              className="mt-4 px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+              className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
               Add First Income Entry
             </button>
@@ -94,37 +94,37 @@ export default function IncomePage() {
       ) : (
         <div className="space-y-4">
           {incomeList.map((income) => (
-            <div key={income.id} className="bg-white border border-secondary-200 rounded-lg p-6">
+            <div key={income.id} className="bg-white border border-gray-200 rounded-lg p-6">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-secondary-900 mb-2">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
                     {income.source}
                   </h3>
 
                   {income.description && (
-                    <p className="text-secondary-700 mb-3">{income.description}</p>
+                    <p className="text-gray-700 mb-3">{income.description}</p>
                   )}
 
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                     <div>
-                      <span className="text-secondary-600">Amount:</span>
-                      <p className="font-semibold text-success-600 text-lg">
+                      <span className="text-gray-600">Amount:</span>
+                      <p className="font-semibold text-green-600 text-lg">
                         ${income.amount.toLocaleString()}
                       </p>
                     </div>
                     <div>
-                      <span className="text-secondary-600">Date:</span>
-                      <p className="font-semibold text-secondary-900">
+                      <span className="text-gray-600">Date:</span>
+                      <p className="font-semibold text-gray-900">
                         {new Date(income.income_date).toLocaleDateString()}
                       </p>
                     </div>
                     <div>
-                      <span className="text-secondary-600">Project ID:</span>
-                      <p className="font-semibold text-secondary-900">{income.project_id}</p>
+                      <span className="text-gray-600">Project ID:</span>
+                      <p className="font-semibold text-gray-900">{income.project_id}</p>
                     </div>
                     <div>
-                      <span className="text-secondary-600">Created:</span>
-                      <p className="font-semibold text-secondary-900">
+                      <span className="text-gray-600">Created:</span>
+                      <p className="font-semibold text-gray-900">
                         {new Date(income.created_at).toLocaleDateString()}
                       </p>
                     </div>

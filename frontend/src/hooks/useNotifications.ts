@@ -5,6 +5,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { Notification, UnreadCount } from '@/types/common'
+import { apiClient } from '@/lib/api'
 
 interface UseNotificationsOptions {
   pollingInterval?: number // in milliseconds
@@ -31,28 +32,18 @@ export function useNotifications({
   const [error, setError] = useState<string | null>(null)
 
   const fetchNotifications = useCallback(async () => {
+    console.log('fetchNotifications function called')
     try {
-      const token = localStorage.getItem('token')
-      if (!token) {
-        throw new Error('No authentication token')
-      }
-
-      const response = await fetch('/api/v1/notifications?limit=20', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch notifications')
-      }
-
-      const data = await response.json()
+      setIsLoading(true)
+      console.log('Fetching notifications from API...')
+      const data = await apiClient.get('/notifications?limit=20')
+      console.log('Notifications API response:', data)
       setNotifications(data.notifications || [])
       setUnreadCount(data.unread_count || 0)
       setError(null)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch notifications')
+      console.error('Failed to fetch notifications:', err)
     } finally {
       setIsLoading(false)
     }
@@ -60,19 +51,8 @@ export function useNotifications({
 
   const fetchUnreadCount = useCallback(async () => {
     try {
-      const token = localStorage.getItem('token')
-      if (!token) return
-
-      const response = await fetch('/api/v1/notifications/unread-count', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-
-      if (response.ok) {
-        const data: UnreadCount = await response.json()
-        setUnreadCount(data.count)
-      }
+      const data: UnreadCount = await apiClient.get('/notifications/unread-count')
+      setUnreadCount(data.count)
     } catch (err) {
       console.error('Error fetching unread count:', err)
     }
@@ -81,23 +61,13 @@ export function useNotifications({
   const markAsRead = useCallback(
     async (notificationId: string) => {
       try {
-        const token = localStorage.getItem('token')
-        if (!token) return
+        await apiClient.patch(`/notifications/${notificationId}/read`)
 
-        const response = await fetch(`/api/v1/notifications/${notificationId}/read`, {
-          method: 'PATCH',
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-
-        if (response.ok) {
-          // Update local state
-          setNotifications((prev) =>
-            prev.map((n) => (n.id === notificationId ? { ...n, is_read: true } : n))
-          )
-          setUnreadCount((prev) => Math.max(0, prev - 1))
-        }
+        // Update local state
+        setNotifications((prev) =>
+          prev.map((n) => (n.id === notificationId ? { ...n, is_read: true } : n))
+        )
+        setUnreadCount((prev) => Math.max(0, prev - 1))
       } catch (err) {
         console.error('Error marking notification as read:', err)
       }
@@ -107,21 +77,11 @@ export function useNotifications({
 
   const markAllAsRead = useCallback(async () => {
     try {
-      const token = localStorage.getItem('token')
-      if (!token) return
+      await apiClient.patch('/notifications/read-all')
 
-      const response = await fetch('/api/v1/notifications/read-all', {
-        method: 'PATCH',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-
-      if (response.ok) {
-        // Update local state
-        setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })))
-        setUnreadCount(0)
-      }
+      // Update local state
+      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })))
+      setUnreadCount(0)
     } catch (err) {
       console.error('Error marking all as read:', err)
     }
@@ -134,8 +94,12 @@ export function useNotifications({
 
   // Initial fetch
   useEffect(() => {
+    console.log('useNotifications hook enabled state:', enabled)
     if (enabled) {
+      console.log('Calling fetchNotifications from initial useEffect')
       fetchNotifications()
+    } else {
+      console.log('useNotifications hook is disabled')
     }
   }, [enabled, fetchNotifications])
 

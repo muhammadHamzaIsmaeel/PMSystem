@@ -115,8 +115,8 @@ export default function FinancialPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-secondary-900">Financial Dashboard</h1>
-        <p className="text-secondary-600 mt-2">
+        <h1 className="text-3xl font-bold text-gray-900">Financial Dashboard</h1>
+        <p className="text-gray-600 mt-2">
           Track and manage project income and expenses
         </p>
       </div>
@@ -125,8 +125,8 @@ export default function FinancialPage() {
       <div className="mb-12">
         <div className="mb-6 flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-secondary-900">Income</h2>
-            <p className="text-secondary-600 mt-1">
+            <h2 className="text-2xl font-bold text-gray-900">Income</h2>
+            <p className="text-gray-600 mt-1">
               Project revenue and income entries
             </p>
           </div>
@@ -134,7 +134,7 @@ export default function FinancialPage() {
           {canCreateIncome && (
             <button
               onClick={() => router.push('/income/new')}
-              className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
               Add Income
             </button>
@@ -144,17 +144,17 @@ export default function FinancialPage() {
         {incomeLoading ? (
           <div className="flex items-center justify-center min-h-[200px]">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
-              <p className="text-secondary-600">Loading income...</p>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading income...</p>
             </div>
           </div>
         ) : incomeList.length === 0 ? (
-          <div className="text-center py-8 bg-white border border-secondary-200 rounded-lg">
-            <p className="text-secondary-600">No income entries found</p>
+          <div className="text-center py-8 bg-white border border-gray-200 rounded-lg">
+            <p className="text-gray-600">No income entries found</p>
             {canCreateIncome && (
               <button
                 onClick={() => router.push('/income/new')}
-                className="mt-4 px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
                 Add First Income Entry
               </button>
@@ -163,37 +163,37 @@ export default function FinancialPage() {
         ) : (
           <div className="space-y-4">
             {incomeList.slice(0, 5).map((income) => (
-              <div key={income.id} className="bg-white border border-secondary-200 rounded-lg p-6">
+              <div key={income.id} className="bg-white border border-gray-200 rounded-lg p-6">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-secondary-900 mb-2">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
                       {income.source}
                     </h3>
 
                     {income.description && (
-                      <p className="text-secondary-700 mb-3">{income.description}</p>
+                      <p className="text-gray-700 mb-3">{income.description}</p>
                     )}
 
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                       <div>
-                        <span className="text-secondary-600">Amount:</span>
-                        <p className="font-semibold text-success-600 text-lg">
+                        <span className="text-gray-600">Amount:</span>
+                        <p className="font-semibold text-green-600 text-lg">
                           ${income.amount.toLocaleString()}
                         </p>
                       </div>
                       <div>
-                        <span className="text-secondary-600">Date:</span>
-                        <p className="font-semibold text-secondary-900">
+                        <span className="text-gray-600">Date:</span>
+                        <p className="font-semibold text-gray-900">
                           {new Date(income.income_date).toLocaleDateString()}
                         </p>
                       </div>
                       <div>
-                        <span className="text-secondary-600">Project ID:</span>
-                        <p className="font-semibold text-secondary-900">{income.project_id}</p>
+                        <span className="text-gray-600">Project ID:</span>
+                        <p className="font-semibold text-gray-900">{income.project_id}</p>
                       </div>
                       <div>
-                        <span className="text-secondary-600">Created:</span>
-                        <p className="font-semibold text-secondary-900">
+                        <span className="text-gray-600">Created:</span>
+                        <p className="font-semibold text-gray-900">
                           {new Date(income.created_at).toLocaleDateString()}
                         </p>
                       </div>
@@ -205,7 +205,7 @@ export default function FinancialPage() {
             <div className="text-center mt-4">
               <button
                 onClick={() => router.push('/income')}
-                className="px-6 py-2 border border-primary-600 text-primary-600 rounded-lg hover:bg-primary-50 transition-colors"
+                className="px-6 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
               >
                 View All Income
               </button>
@@ -217,24 +217,24 @@ export default function FinancialPage() {
       {/* Expenses Section */}
       <div>
         <div className="mb-6">
-          <h2 className="text-2xl font-bold text-secondary-900">Expenses</h2>
-          <p className="text-secondary-600 mt-1">
+          <h2 className="text-2xl font-bold text-gray-900">Expenses</h2>
+          <p className="text-gray-600 mt-1">
             {isFinance ? 'Review and approve expense submissions' : 'Your submitted expenses'}
           </p>
         </div>
 
         {/* Filters */}
-        <div className="bg-white border border-secondary-200 rounded-lg p-4 mb-6">
+        <div className="bg-white border border-gray-200 rounded-lg p-4 mb-6">
           <div className="flex flex-wrap items-center gap-4">
             <div>
-              <label htmlFor="status-filter" className="text-sm font-medium text-secondary-700 mr-2">
+              <label htmlFor="status-filter" className="text-sm font-medium text-gray-700 mr-2">
                 Filter by Status:
               </label>
               <select
                 id="status-filter"
                 value={expenseStatusFilter}
                 onChange={(e) => setExpenseStatusFilter(e.target.value as ApprovalStatus | 'ALL')}
-                className="px-4 py-2 border border-secondary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
               >
                 <option value="ALL">All Status</option>
                 <option value={ApprovalStatus.PENDING}>Pending</option>
@@ -246,7 +246,7 @@ export default function FinancialPage() {
             <div className="ml-auto">
               <button
                 onClick={() => router.push('/expenses/new')}
-                className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
                 Submit New Expense
               </button>
@@ -257,31 +257,37 @@ export default function FinancialPage() {
         {expenseLoading ? (
           <div className="flex items-center justify-center min-h-[200px]">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
-              <p className="text-secondary-600">Loading expenses...</p>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading expenses...</p>
             </div>
           </div>
         ) : filteredExpenses.length === 0 ? (
-          <div className="text-center py-8 bg-white border border-secondary-200 rounded-lg">
-            <p className="text-secondary-600">No expenses found</p>
+          <div className="text-center py-8 bg-white border border-gray-200 rounded-lg">
+            <p className="text-gray-600">No expenses found</p>
+            <button
+              onClick={() => router.push('/expenses/new')}
+              className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Submit First Expense
+            </button>
           </div>
         ) : (
           <div className="space-y-4">
             {filteredExpenses.slice(0, 5).map((expense) => (
-              <div key={expense.id} className="bg-white border border-secondary-200 rounded-lg p-6">
+              <div key={expense.id} className="bg-white border border-gray-200 rounded-lg p-6">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-lg font-semibold text-secondary-900">
+                      <h3 className="text-lg font-semibold text-gray-900">
                         {expense.category}
                       </h3>
                       <span
                         className={`px-3 py-1 rounded-full text-xs font-medium ${
                           expense.approval_status === ApprovalStatus.APPROVED
-                            ? 'bg-success-100 text-success-800'
+                            ? 'bg-green-100 text-green-800'
                             : expense.approval_status === ApprovalStatus.REJECTED
-                            ? 'bg-error-100 text-error-800'
-                            : 'bg-warning-100 text-warning-800'
+                            ? 'bg-red-100 text-red-800'
+                            : 'bg-yellow-100 text-yellow-800'
                         }`}
                       >
                         {expense.approval_status}
@@ -289,30 +295,30 @@ export default function FinancialPage() {
                     </div>
 
                     {expense.description && (
-                      <p className="text-secondary-700 mb-3">{expense.description}</p>
+                      <p className="text-gray-700 mb-3">{expense.description}</p>
                     )}
 
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                       <div>
-                        <span className="text-secondary-600">Amount:</span>
-                        <p className="font-semibold text-secondary-900">
+                        <span className="text-gray-600">Amount:</span>
+                        <p className="font-semibold text-gray-900">
                           ${expense.amount.toLocaleString()}
                         </p>
                       </div>
                       <div>
-                        <span className="text-secondary-600">Date:</span>
-                        <p className="font-semibold text-secondary-900">
+                        <span className="text-gray-600">Date:</span>
+                        <p className="font-semibold text-gray-900">
                           {new Date(expense.expense_date).toLocaleDateString()}
                         </p>
                       </div>
                       <div>
-                        <span className="text-secondary-600">Project ID:</span>
-                        <p className="font-semibold text-secondary-900">{expense.project_id}</p>
+                        <span className="text-gray-600">Project ID:</span>
+                        <p className="font-semibold text-gray-900">{expense.project_id}</p>
                       </div>
                       {expense.task_id && (
                         <div>
-                          <span className="text-secondary-600">Task ID:</span>
-                          <p className="font-semibold text-secondary-900">{expense.task_id}</p>
+                          <span className="text-gray-600">Task ID:</span>
+                          <p className="font-semibold text-gray-900">{expense.task_id}</p>
                         </div>
                       )}
                     </div>
@@ -323,13 +329,13 @@ export default function FinancialPage() {
                     <div className="flex gap-2 ml-4">
                       <button
                         onClick={() => handleApprove(expense.id)}
-                        className="px-4 py-2 bg-gray-600 text-black rounded-lg hover:bg-success-700 transition-colors font-medium"
+                        className="px-4 py-2 bg-gray-600 text-black rounded-lg hover:bg-green-700 transition-colors font-medium"
                       >
                         Approve
                       </button>
                       <button
                         onClick={() => handleReject(expense.id)}
-                        className="px-4 py-2 bg-gray-600 text-black rounded-lg hover:bg-error-700 transition-colors font-medium"
+                        className="px-4 py-2 bg-gray-600 text-black rounded-lg hover:bg-red-700 transition-colors font-medium"
                       >
                         Reject
                       </button>
@@ -341,7 +347,7 @@ export default function FinancialPage() {
             <div className="text-center mt-4">
               <button
                 onClick={() => router.push('/expenses')}
-                className="px-6 py-2 border border-primary-600 text-primary-600 rounded-lg hover:bg-primary-50 transition-colors"
+                className="px-6 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
               >
                 View All Expenses
               </button>

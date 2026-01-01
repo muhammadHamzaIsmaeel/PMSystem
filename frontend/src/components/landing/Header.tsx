@@ -17,7 +17,7 @@ const Header = () => {
               <span className="text-white">Welcome, {user?.name}</span>
               <Link
                 href="/dashboard"
-                className="bg-primary-600 hover:bg-primary-700 text-white font-semibold px-6 py-2 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105"
+                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105"
               >
                 Dashboard
               </Link>
@@ -38,7 +38,7 @@ const Header = () => {
               </Link>
               <Link
                 href="/register"
-                className="bg-primary-600 hover:bg-primary-700 text-white font-semibold px-6 py-2 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105"
+                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105"
               >
                 Get Started
               </Link>

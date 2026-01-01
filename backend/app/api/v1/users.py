@@ -77,11 +77,16 @@ async def update_user(
         if current_user.role != "Admin":
             raise HTTPException(status_code=403, detail="Not authorized to update this user")
 
-    # Update fields if provided
+    # Check if email is being updated and if it already exists for another user
+    if user_update.email is not None:
+        existing_user = await User.find_one(User.email == user_update.email)
+        if existing_user and str(existing_user.id) != user_id:
+            raise HTTPException(status_code=409, detail="Email already registered by another user")
+        user.email = user_update.email
+
+    # Update other fields if provided
     if user_update.full_name is not None:
         user.full_name = user_update.full_name
-    if user_update.email is not None:
-        user.email = user_update.email
     if user_update.hrmsx_user_id is not None:
         user.hrmsx_user_id = user_update.hrmsx_user_id
     if user_update.role is not None and current_user.role == "Admin":

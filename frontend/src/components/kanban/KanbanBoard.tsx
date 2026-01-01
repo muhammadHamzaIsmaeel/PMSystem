@@ -22,6 +22,7 @@ import { Task, TaskStatus } from '@/types/task'
 import { KanbanColumn } from './KanbanColumn'
 import { KanbanCard } from './KanbanCard'
 import { useKanbanRealtime } from '@/hooks/useKanbanRealtime'
+import { apiClient } from '@/lib/api'
 
 interface KanbanBoardProps {
   projectId: string
@@ -33,6 +34,7 @@ export function KanbanBoard({ projectId, initialTasks, token }: KanbanBoardProps
   const [tasks, setTasks] = useState<Task[]>(initialTasks)
   const [activeTask, setActiveTask] = useState<Task | null>(null)
   const [taskSubtaskCounts, setTaskSubtaskCounts] = useState<Record<string, number>>({})
+  const [draggedTaskOriginalStatus, setDraggedTaskOriginalStatus] = useState<string | null>(null)
 
   // Configure sensors for drag-and-drop
   // Supports both mouse (desktop) and touch (mobile)
@@ -93,6 +95,7 @@ export function KanbanBoard({ projectId, initialTasks, token }: KanbanBoardProps
     const task = tasks.find((t) => t.id === active.id)
     if (task) {
       setActiveTask(task)
+      setDraggedTaskOriginalStatus(task.status)
     }
   }
 
@@ -150,33 +153,29 @@ export function KanbanBoard({ projectId, initialTasks, token }: KanbanBoardProps
       }
     }
 
-    // Only update if status changed
-    if (newStatus !== activeTask.status) {
+    // Only update if status changed - use the original status from drag start
+    if (newStatus !== draggedTaskOriginalStatus) {
       // Optimistic UI update already done in handleDragOver
       // Now persist to backend
       try {
-        const response = await fetch(`/api/v1/kanban/tasks/${activeTask.id}/status`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ new_status: newStatus }),
+        // Use the apiClient to make the request with proper authentication
+        await apiClient.patch(`/kanban/tasks/${activeTask.id}/status`, {
+          new_status: newStatus,
         })
-
-        if (!response.ok) {
-          // Revert on error
-          setTasks((prevTasks) =>
-            prevTasks.map((t) =>
-              t.id === activeTask.id ? { ...t, status: activeTask.status } : t
-            )
-          )
-          throw new Error('Failed to update task status')
-        }
       } catch (error) {
         console.error('Error updating task status:', error)
+
+        // Revert on error
+        setTasks((prevTasks) =>
+          prevTasks.map((t) =>
+            t.id === activeTask.id ? { ...t, status: draggedTaskOriginalStatus || t.status } : t
+          )
+        )
       }
     }
+
+    // Reset the original status tracking
+    setDraggedTaskOriginalStatus(null)
   }
 
   return (

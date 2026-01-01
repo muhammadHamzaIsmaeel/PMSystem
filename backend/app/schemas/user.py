@@ -37,6 +37,7 @@ class UserUpdate(BaseModel):
     """Schema for updating user profile"""
 
     full_name: Optional[str] = Field(None, min_length=1, max_length=255)
+    email: Optional[EmailStr] = Field(None)
     role: Optional[UserRole] = None
     hrmsx_user_id: Optional[str] = Field(None, max_length=100)
     is_active: Optional[bool] = None

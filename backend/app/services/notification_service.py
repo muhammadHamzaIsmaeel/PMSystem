@@ -73,7 +73,7 @@ class NotificationService:
         Returns:
             List of notifications
         """
-        notifications = await Notification.find(Notification.recipient_id == user_id).sort(
+        notifications = await Notification.find(Notification.recipient_id == str(user_id)).sort(
             -Notification.created_at
         ).skip(skip).limit(limit).to_list()
 
@@ -103,7 +103,7 @@ class NotificationService:
             Count of unread notifications
         """
         count = await Notification.find(
-            Notification.recipient_id == user_id,
+            Notification.recipient_id == str(user_id),
             Notification.is_read == False
         ).count()
 
@@ -126,7 +126,7 @@ class NotificationService:
         """
         notification = await Notification.find_one(
             Notification.id == notification_id,
-            Notification.recipient_id == user_id
+            Notification.recipient_id == str(user_id)
         )
 
         if not notification:
@@ -148,9 +148,17 @@ class NotificationService:
         Returns:
             Number of notifications marked as read
         """
-        result = await Notification.update_many(
-            {"recipient_id": user_id, "is_read": False},
-            {"$set": {"is_read": True}}
-        )
+        # First, find all unread notifications for the user
+        notifications_to_update = await Notification.find(
+            Notification.recipient_id == str(user_id),
+            Notification.is_read == False
+        ).to_list()
 
-        return result.modified_count
+        count = 0
+        # Update each notification individually
+        for notification in notifications_to_update:
+            notification.is_read = True
+            await notification.save()
+            count += 1
+
+        return count

@@ -130,7 +130,7 @@ export default function ProjectKanbanPage() {
             <p className="text-slate-600">There are no tasks for this project yet.</p>
             {/* Optionally add a button to create a task */}
             <button
-              onClick={() => router.push(`/projects/${projectId}/tasks/new`)}
+              onClick={() => router.push(`/tasks/new?project_id=${projectId}`)}
               className="mt-6 bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
             >
               Create First Task
@@ -147,7 +147,7 @@ export default function ProjectKanbanPage() {
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-3xl font-bold text-slate-800">Kanban Board</h1>
         <button
-          onClick={() => router.push(`/projects/${projectId}/tasks/new`)}
+          onClick={() => router.push(`/tasks/new?project_id=${projectId}`)}
           className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
           New Task

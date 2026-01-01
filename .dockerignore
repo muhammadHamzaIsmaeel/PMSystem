@@ -1,0 +1,40 @@
+# Ignore Git-related files
+.git
+.gitignore
+
+# Ignore build artifacts and caches for Python backend
+__pycache__/
+*.pyc
+.venv/
+venv/
+env/
+dist/
+*.egg-info/
+uv.lock
+uploads/
+
+# Ignore Node.js / Frontend specific files
+node_modules/
+.next/
+out/
+build/
+pnpm-lock.yaml
+
+# Ignore development environment files
+.env
+.env.development.local
+.env.test.local
+.env.local
+.env.*.local # Catch all other local env files
+
+# Project specific ignores that shouldn't be in the image
+ERD.png
+ERD.drawio
+postman_collection.json
+
+# Ignore editor/IDE specific files
+.vscode/
+.idea/
+*.tmp
+*.swp
+*.log

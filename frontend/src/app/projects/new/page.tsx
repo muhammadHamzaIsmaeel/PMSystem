@@ -16,54 +16,34 @@ export default function NewProjectPage() {
   const { token, user } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
 
-              const handleSubmit = async (formData: ProjectCreate) => {
+  const handleSubmit = async (formData: ProjectCreate) => {
+    try {
+      setIsLoading(true)
 
-                try {
+      // Convert date strings to ISO 8601 datetime strings with a time component
 
-                  setIsLoading(true)
+      // If start_date/end_date are empty strings, convert them to undefined
 
-        
+      const dataToSend = {
+        ...formData,
 
-                  // Convert date strings to ISO 8601 datetime strings with a time component
+        start_date: formData.start_date ? new Date(formData.start_date).toISOString() : undefined,
 
-                  // If start_date/end_date are empty strings, convert them to undefined
+        end_date: formData.end_date ? new Date(formData.end_date).toISOString() : undefined,
+      }
 
-                  const dataToSend = {
+      const response = await fetch('/api/v1/projects', {
+        method: 'POST',
 
-                    ...formData,
+        headers: {
+          'Content-Type': 'application/json',
 
-                    start_date: formData.start_date
+          Authorization: `Bearer ${token}`,
+        },
 
-                      ? new Date(formData.start_date).toISOString()
-
-                      : undefined,
-
-                    end_date: formData.end_date
-
-                      ? new Date(formData.end_date).toISOString()
-
-                      : undefined,
-
-                  }
-
-
-
-                  const response = await fetch('/api/v1/projects', {
-
-                    method: 'POST',
-
-                    headers: {
-
-                      'Content-Type': 'application/json',
-
-                      Authorization: `Bearer ${token}`,
-
-                    },
-
-                    body: JSON.stringify(dataToSend),
-
-                  })
-        if (!response.ok) {
+        body: JSON.stringify(dataToSend),
+      })
+      if (!response.ok) {
         const errorData = await response.json()
         let errorMessage = 'Failed to create project.'
         if (errorData && errorData.detail) {
@@ -84,10 +64,10 @@ export default function NewProjectPage() {
 
       // Backend now returns a simple 'id' field as a string
       if (!project.id) {
-          console.error('Project ID not found in response:', project);
-          alert('Failed to get project ID after creation. Please check console for details.');
-          setIsLoading(false);
-          return;
+        console.error('Project ID not found in response:', project)
+        alert('Failed to get project ID after creation. Please check console for details.')
+        setIsLoading(false)
+        return
       }
 
       router.push(`/projects/${project.id}`)
