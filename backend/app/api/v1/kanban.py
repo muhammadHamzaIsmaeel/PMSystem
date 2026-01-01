@@ -117,9 +117,11 @@ async def update_task_status(
         )
 
     # Check permissions (Admin, PM, or assigned user can update)
-    
+
     if current_user.role not in [UserRole.ADMIN, UserRole.PROJECT_MANAGER]:
-        if str(task.assigned_to_id) != str(current_user.id):
+        # If task is assigned to someone, only that user can update it
+        # If task is not assigned to anyone, only Admin/PM can update it
+        if task.assigned_user_id and str(task.assigned_user_id) != str(current_user.id):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="You don't have permission to update this task"

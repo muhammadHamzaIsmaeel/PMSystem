@@ -17,7 +17,6 @@ export default function SettingsPage() {
   const [formData, setFormData] = useState({
     full_name: '',
     email: '',
-    hrmsx_user_id: '',
   })
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -34,7 +33,6 @@ export default function SettingsPage() {
     setFormData({
       full_name: user.full_name || '',
       email: user.email || '',
-      hrmsx_user_id: user.hrmsx_user_id || '',
     })
     setLoading(false)
   }, [user])
@@ -76,14 +74,10 @@ export default function SettingsPage() {
         updatePayload.full_name = formData.full_name
       }
 
-      if (formData.email.trim()) {
+      // Only include email in the payload if it's a valid email
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (formData.email.trim() && emailRegex.test(formData.email)) {
         updatePayload.email = formData.email
-      }
-
-      if (formData.hrmsx_user_id.trim()) {
-        updatePayload.hrmsx_user_id = formData.hrmsx_user_id
-      } else {
-        updatePayload.hrmsx_user_id = null
       }
 
       // Update user profile via API using the correct endpoint
@@ -94,7 +88,6 @@ export default function SettingsPage() {
         ...user,
         full_name: formData.full_name,
         email: formData.email,
-        hrmsx_user_id: formData.hrmsx_user_id || null,
       } as User)
 
       setMessage('Profile updated successfully!')
@@ -189,21 +182,6 @@ export default function SettingsPage() {
                 />
               </div>
 
-              <div className="md:col-span-2">
-                <label htmlFor="hrmsx_user_id" className="block text-sm font-medium text-gray-700 mb-2">
-                  HRMSX User ID (Optional)
-                </label>
-                <input
-                  type="text"
-                  id="hrmsx_user_id"
-                  name="hrmsx_user_id"
-                  value={formData.hrmsx_user_id}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-                  placeholder="HRMSX_USER_123"
-                />
-                <p className="mt-1 text-sm text-gray-500">Used for HRMSX integration (optional)</p>
-              </div>
             </div>
 
             <div className="flex justify-end">
@@ -240,7 +218,10 @@ export default function SettingsPage() {
                 <h3 className="font-medium text-gray-900">Two-Factor Authentication</h3>
                 <p className="text-sm text-gray-600">Add an extra layer of security</p>
               </div>
-              <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+              <button
+                onClick={() => router.push('/two-factor-auth')}
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
                 Configure
               </button>
             </div>

@@ -5,13 +5,15 @@ Task service with CRUD operations, subtask creation, and role-based filtering.
 from typing import List, Optional
 from beanie import PydanticObjectId
 
+from app.core.config import settings
 from app.core.exceptions import NotFoundException, ForbiddenException
 from app.models.task import Task
 from app.models.project import Project
-from app.models.user import UserRole
+from app.models.user import UserRole, User
 from app.models.notification import NotificationType
 from app.schemas.task import TaskCreate, TaskUpdate, TaskResponse, SubtaskCreate
 from app.services.notification_service import NotificationService
+from app.services.email_service import EmailService
 
 
 class TaskService:
@@ -34,7 +36,7 @@ class TaskService:
 
         await task.insert()
 
-        # Create notification if task is assigned
+        # Create notification and send email if task is assigned
         if task.assigned_user_id:
             await NotificationService.create_notification(
                 recipient_id=task.assigned_user_id,
@@ -43,6 +45,26 @@ class TaskService:
                 related_entity_id=str(task.id),  # Convert ObjectId to string
                 message=f"You have been assigned to task: {task.title}"
             )
+
+            # Send email notification
+            try:
+                assigned_user = await User.get(task.assigned_user_id)
+                if assigned_user and assigned_user.email:
+                    email_service = EmailService()
+                    email_service.send_email(
+                        to_email=assigned_user.email,
+                        subject=f"New Task Assignment: {task.title}",
+                        template_name="task_assigned.html",
+                        assignee_name=assigned_user.full_name if assigned_user.full_name else assigned_user.email,
+                        task_title=task.title,
+                        task_description=task.description or "No description provided",
+                        project_name=project.name if project and project.name else "Unknown Project",
+                        priority=task.priority.value if hasattr(task.priority, 'value') else str(task.priority),
+                        assigned_by_name="Project Gemini Team",  # In a real scenario, you'd get the creator's name
+                        task_url=f"{settings.FRONTEND_URL}/tasks/{task.id}" if hasattr(settings, 'FRONTEND_URL') else f"https://projectgemini.com/tasks/{task.id}"
+                    )
+            except Exception as e:
+                print(f"Failed to send task assignment email: {e}")
 
         return TaskResponse(
             id=str(task.id),
@@ -86,7 +108,7 @@ class TaskService:
 
         await subtask.insert()
 
-        # Create notification if subtask is assigned
+        # Create notification and send email if subtask is assigned
         if subtask.assigned_user_id:
             await NotificationService.create_notification(
                 recipient_id=subtask.assigned_user_id,
@@ -95,6 +117,26 @@ class TaskService:
                 related_entity_id=str(subtask.id),  # Convert ObjectId to string
                 message=f"You have been assigned to subtask: {subtask.title}"
             )
+
+            # Send email notification
+            try:
+                assigned_user = await User.get(subtask.assigned_user_id)
+                if assigned_user and assigned_user.email:
+                    email_service = EmailService()
+                    email_service.send_email(
+                        to_email=assigned_user.email,
+                        subject=f"New Subtask Assignment: {subtask.title}",
+                        template_name="task_assigned.html",
+                        assignee_name=assigned_user.full_name if assigned_user.full_name else assigned_user.email,
+                        task_title=subtask.title,
+                        task_description=subtask.description or "No description provided",
+                        project_name=parent_task.project_id,  # Since we don't have the project name directly, we use the project_id
+                        priority=subtask.priority.value if hasattr(subtask.priority, 'value') else str(subtask.priority),
+                        assigned_by_name="Project Gemini Team",  # In a real scenario, you'd get the creator's name
+                        task_url=f"{settings.FRONTEND_URL}/tasks/{subtask.id}" if hasattr(settings, 'FRONTEND_URL') else f"https://projectgemini.com/tasks/{subtask.id}"
+                    )
+            except Exception as e:
+                print(f"Failed to send subtask assignment email: {e}")
 
         return TaskResponse(
             id=str(subtask.id),
@@ -225,7 +267,7 @@ class TaskService:
 
         await task.save()
 
-        # Create notification if task was reassigned
+        # Create notification and send email if task was reassigned
         if 'assigned_user_id' in update_data:
             new_assignee = update_data['assigned_user_id']
             if new_assignee and new_assignee != original_assignee:
@@ -236,6 +278,29 @@ class TaskService:
                     related_entity_id=str(task.id),  # Convert ObjectId to string
                     message=f"You have been assigned to task: {task.title}"
                 )
+
+                # Send email notification to new assignee
+                try:
+                    new_user = await User.get(new_assignee)
+                    if new_user and new_user.email:
+                        # Get project name for the email
+                        project = await Project.get(task.project_id) if task.project_id else None
+
+                        email_service = EmailService()
+                        email_service.send_email(
+                            to_email=new_user.email,
+                            subject=f"Task Reassigned to You: {task.title}",
+                            template_name="task_assigned.html",
+                            assignee_name=new_user.full_name if new_user.full_name else new_user.email,
+                            task_title=task.title,
+                            task_description=task.description or "No description provided",
+                            project_name=project.name if project and project.name else "Unknown Project",
+                            priority=task.priority.value if hasattr(task.priority, 'value') else str(task.priority),
+                            assigned_by_name="Project Gemini Team",  # In a real scenario, you'd get the assigner's name
+                            task_url=f"{settings.FRONTEND_URL}/tasks/{task.id}" if hasattr(settings, 'FRONTEND_URL') else f"https://projectgemini.com/tasks/{task.id}"
+                        )
+                except Exception as e:
+                    print(f"Failed to send task reassignment email: {e}")
 
         return TaskResponse(
             id=str(task.id),

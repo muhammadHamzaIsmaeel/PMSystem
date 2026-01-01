@@ -14,8 +14,9 @@ from app.core.security import (
     decode_token,
 )
 from app.core.exceptions import UnauthorizedException, ConflictException, NotFoundException
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.schemas.user import UserCreate, UserLogin, UserResponse, TokenResponse
+from app.services.email_service import EmailService
 
 
 class AuthService:
@@ -60,6 +61,20 @@ class AuthService:
         user_data_for_response = user.model_dump()
         user_data_for_response["id"] = str(user.id)
         user_response = UserResponse.model_validate(user_data_for_response)
+
+        # Send welcome email
+        try:
+            email_service = EmailService()
+            email_service.send_email(
+                to_email=user_data.email,
+                subject="Welcome to Project Gemini!",
+                template_name="welcome.html",
+                user_name=user_data.full_name,
+                dashboard_url=f"{settings.FRONTEND_URL}/dashboard" if hasattr(settings, 'FRONTEND_URL') else "https://projectgemini.com/dashboard"
+            )
+        except Exception as e:
+            print(f"Failed to send welcome email: {e}")
+            # Don't fail the registration if email sending fails
 
         return TokenResponse(
             access_token=access_token, refresh_token=refresh_token, user=user_response
@@ -150,3 +165,32 @@ class AuthService:
         user_data_for_response = user.model_dump()
         user_data_for_response["id"] = str(user.id)
         return UserResponse.model_validate(user_data_for_response)
+
+    @staticmethod
+    async def change_password(user_id: str, current_password: str, new_password: str):
+        """
+        Change user password.
+        Raises NotFoundException if user not found.
+        Raises UnauthorizedException if current password is incorrect.
+        """
+        user = await User.get(user_id)
+        if not user:
+            raise NotFoundException(detail="User not found")
+
+        # Verify current password
+        if not verify_password(current_password, user.password_hash):
+            raise UnauthorizedException(detail="Current password is incorrect")
+
+        # Validate new password
+        if len(new_password) < 8:
+            raise ValueError("New password must be at least 8 characters")
+
+        # Update password
+        user.password_hash = hash_password(new_password)
+
+        # Update timestamp
+        from datetime import datetime
+        user.updated_at = datetime.utcnow()
+
+        # Save changes
+        await user.save()

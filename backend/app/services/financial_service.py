@@ -5,10 +5,12 @@ Financial service with profit/loss calculation logic.
 from typing import List
 from beanie import PydanticObjectId
 
+from app.core.config import settings
 from app.core.exceptions import NotFoundException, ForbiddenException, BadRequestException
 from app.models.financial import Expense, Income, ApprovalStatus
 from app.models.time_entry import TimeEntry
 from app.models.project import Project
+from app.models.user import User
 from app.models.notification import NotificationType
 from app.schemas.financial import (
     ExpenseCreate,
@@ -20,6 +22,7 @@ from app.schemas.financial import (
     ProfitLoss,
 )
 from app.services.notification_service import NotificationService
+from app.services.email_service import EmailService
 
 
 class FinancialService:
@@ -75,6 +78,9 @@ class FinancialService:
                 detail="Cannot approve your own expense"
             )
 
+        # Get project for email notification
+        project = await Project.get(expense.project_id) if expense.project_id else None
+
         expense.approval_status = ApprovalStatus.APPROVED
         expense.approved_by_id = str(approved_by_id)  # Convert ObjectId to string
 
@@ -88,6 +94,28 @@ class FinancialService:
             related_entity_id=str(expense.id),  # Convert ObjectId to string
             message=f"Your expense '{expense.category}' (${expense.amount:.2f}) has been approved"
         )
+
+        # Send email notification
+        try:
+            submitter = await User.get(expense.submitted_by_id)
+            if submitter and submitter.email:
+                email_service = EmailService()
+                email_service.send_email(
+                    to_email=submitter.email,
+                    subject=f"Expense Approved: {expense.category}",
+                    template_name="expense_status_changed.html",
+                    submitter_name=submitter.full_name if submitter.full_name else submitter.email,
+                    category=expense.category,
+                    amount=expense.amount,
+                    description=expense.description or "No description provided",
+                    project_name=project.name if project and project.name else "Unknown Project",
+                    expense_date=expense.expense_date.strftime("%Y-%m-%d") if expense.expense_date else "Unknown date",
+                    reviewer_name="Finance Team",  # In a real scenario, you'd get the approver's name
+                    status="Approved",
+                    expense_url=f"{settings.FRONTEND_URL}/expenses/{expense.id}" if hasattr(settings, 'FRONTEND_URL') else f"https://projectgemini.com/expenses/{expense.id}"
+                )
+        except Exception as e:
+            print(f"Failed to send expense approval email: {e}")
 
         return ExpenseResponse(
             id=str(expense.id),
@@ -115,6 +143,9 @@ class FinancialService:
         if not expense:
             raise NotFoundException(detail="Expense not found")
 
+        # Get project for email notification
+        project = await Project.get(expense.project_id) if expense.project_id else None
+
         expense.approval_status = ApprovalStatus.REJECTED
         expense.approved_by_id = str(approved_by_id)  # Convert ObjectId to string
 
@@ -128,6 +159,28 @@ class FinancialService:
             related_entity_id=str(expense.id),  # Convert ObjectId to string
             message=f"Your expense '{expense.category}' (${expense.amount:.2f}) has been rejected"
         )
+
+        # Send email notification
+        try:
+            submitter = await User.get(expense.submitted_by_id)
+            if submitter and submitter.email:
+                email_service = EmailService()
+                email_service.send_email(
+                    to_email=submitter.email,
+                    subject=f"Expense Rejected: {expense.category}",
+                    template_name="expense_status_changed.html",
+                    submitter_name=submitter.full_name if submitter.full_name else submitter.email,
+                    category=expense.category,
+                    amount=expense.amount,
+                    description=expense.description or "No description provided",
+                    project_name=project.name if project and project.name else "Unknown Project",
+                    expense_date=expense.expense_date.strftime("%Y-%m-%d") if expense.expense_date else "Unknown date",
+                    reviewer_name="Finance Team",  # In a real scenario, you'd get the approver's name
+                    status="Rejected",
+                    expense_url=f"{settings.FRONTEND_URL}/expenses/{expense.id}" if hasattr(settings, 'FRONTEND_URL') else f"https://projectgemini.com/expenses/{expense.id}"
+                )
+        except Exception as e:
+            print(f"Failed to send expense rejection email: {e}")
 
         return ExpenseResponse(
             id=str(expense.id),

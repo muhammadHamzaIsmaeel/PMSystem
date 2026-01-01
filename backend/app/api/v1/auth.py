@@ -2,11 +2,13 @@
 Authentication endpoints: register, login, refresh, logout.
 """
 
-from fastapi import APIRouter, Depends, Body
+from fastapi import APIRouter, Depends, Body, HTTPException
 
 from app.services.auth_service import AuthService
 from app.schemas.user import UserCreate, UserLogin, TokenResponse
 from app.schemas.common import MessageResponse
+from app.models.user import User
+from app.core.deps import get_current_user_from_token
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -45,6 +47,21 @@ async def refresh_token(refresh_token: str = Body(..., embed=True)):
         "refresh_token": new_refresh_token,
         "token_type": "bearer",
     }
+
+
+@router.post("/change-password", response_model=MessageResponse)
+async def change_password(
+    current_password: str,
+    new_password: str,
+    current_user: User = Depends(get_current_user_from_token),
+):
+    """
+    Change user password.
+
+    Requires authentication and current password verification.
+    """
+    await AuthService.change_password(str(current_user.id), current_password, new_password)
+    return MessageResponse(message="Password changed successfully")
 
 
 @router.post("/logout", response_model=MessageResponse)

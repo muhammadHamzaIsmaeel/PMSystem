@@ -57,49 +57,49 @@ export function TaskForm({
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       {isSubtask && (
-        <div className="bg-primary-50 border border-primary-200 rounded-lg p-4">
-          <p className="text-sm text-primary-800">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <p className="text-sm text-blue-800">
             <span className="font-medium">Creating subtask</span> for parent task: {parentTaskId}
           </p>
         </div>
       )}
 
       <div>
-        <label htmlFor="title" className="block text-sm font-medium text-secondary-900 mb-1">
+        <label htmlFor="title" className="block text-sm font-medium text-gray-900 mb-1">
           Task Title *
         </label>
         <input
           {...register('title')}
           id="title"
           type="text"
-          className="w-full px-4 py-2 border border-secondary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
           placeholder="Enter task title"
         />
-        {errors.title && <p className="mt-1 text-sm text-error-600">{errors.title.message}</p>}
+        {errors.title && <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>}
       </div>
 
       <div>
-        <label htmlFor="description" className="block text-sm font-medium text-secondary-900 mb-1">
+        <label htmlFor="description" className="block text-sm font-medium text-gray-900 mb-1">
           Description
         </label>
         <textarea
           {...register('description')}
           id="description"
           rows={4}
-          className="w-full px-4 py-2 border border-secondary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
           placeholder="Enter task description"
         />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label htmlFor="priority" className="block text-sm font-medium text-secondary-900 mb-1">
+          <label htmlFor="priority" className="block text-sm font-medium text-gray-900 mb-1">
             Priority *
           </label>
           <select
             {...register('priority')}
             id="priority"
-            className="w-full px-4 py-2 border border-secondary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
           >
             <option value={TaskPriority.LOW}>Low</option>
             <option value={TaskPriority.MEDIUM}>Medium</option>
@@ -110,13 +110,13 @@ export function TaskForm({
         </div>
 
         <div>
-          <label htmlFor="status" className="block text-sm font-medium text-secondary-900 mb-1">
+          <label htmlFor="status" className="block text-sm font-medium text-gray-900 mb-1">
             Status *
           </label>
           <select
             {...register('status')}
             id="status"
-            className="w-full px-4 py-2 border border-secondary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
           >
             <option value={TaskStatus.TODO}>To Do</option>
             <option value={TaskStatus.IN_PROGRESS}>In Progress</option>
@@ -128,21 +128,21 @@ export function TaskForm({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label htmlFor="due_date" className="block text-sm font-medium text-secondary-900 mb-1">
+          <label htmlFor="due_date" className="block text-sm font-medium text-gray-900 mb-1">
             Due Date
           </label>
           <input
             {...register('due_date')}
             id="due_date"
             type="date"
-            className="w-full px-4 py-2 border border-secondary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
           />
         </div>
 
         <div>
           <label
             htmlFor="estimated_hours"
-            className="block text-sm font-medium text-secondary-900 mb-1"
+            className="block text-sm font-medium text-gray-900 mb-1"
           >
             Estimated Hours
           </label>
@@ -151,37 +151,37 @@ export function TaskForm({
             id="estimated_hours"
             type="number"
             step="0.5"
-            className="w-full px-4 py-2 border border-secondary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
             placeholder="0.0"
           />
           {errors.estimated_hours && (
-            <p className="mt-1 text-sm text-error-600">{errors.estimated_hours.message}</p>
+            <p className="mt-1 text-sm text-red-600">{errors.estimated_hours.message}</p>
           )}
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label htmlFor="project_id" className="block text-sm font-medium text-secondary-900 mb-1">
+          <label htmlFor="project_id" className="block text-sm font-medium text-gray-900 mb-1">
             Project ID *
           </label>
           <input
             {...register('project_id')}
             id="project_id"
             type="text"
-            className="w-full px-4 py-2 border border-secondary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
             placeholder="Enter project ID"
             disabled={isSubtask && !!initialData?.project_id}
           />
           {errors.project_id && (
-            <p className="mt-1 text-sm text-error-600">{errors.project_id.message}</p>
+            <p className="mt-1 text-sm text-red-600">{errors.project_id.message}</p>
           )}
         </div>
 
         <div>
           <label
             htmlFor="assigned_to_id"
-            className="block text-sm font-medium text-secondary-900 mb-1"
+            className="block text-sm font-medium text-gray-900 mb-1"
           >
             Assigned To ID *
           </label>
@@ -189,11 +189,11 @@ export function TaskForm({
             {...register('assigned_to_id')}
             id="assigned_to_id"
             type="text"
-            className="w-full px-4 py-2 border border-secondary-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
             placeholder="Enter user ID"
           />
           {errors.assigned_to_id && (
-            <p className="mt-1 text-sm text-error-600">{errors.assigned_to_id.message}</p>
+            <p className="mt-1 text-sm text-red-600">{errors.assigned_to_id.message}</p>
           )}
         </div>
       </div>
@@ -207,7 +207,7 @@ export function TaskForm({
           <button
             type="button"
             onClick={onCancel}
-            className="px-6 py-2 border border-secondary-300 text-secondary-700 rounded-lg hover:bg-secondary-50 transition-colors"
+            className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
           >
             Cancel
           </button>
@@ -215,7 +215,7 @@ export function TaskForm({
         <button
           type="submit"
           disabled={isLoading}
-          className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {isLoading ? 'Saving...' : isSubtask ? 'Create Subtask' : 'Save Task'}
         </button>
