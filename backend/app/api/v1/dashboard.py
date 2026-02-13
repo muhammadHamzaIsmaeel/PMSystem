@@ -5,7 +5,7 @@ Provides summary statistics, charts, and financial reporting
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from typing import List, Dict
+from typing import List, Dict, Any
 from pydantic import BaseModel
 from beanie import PydanticObjectId
 from datetime import datetime, timedelta
@@ -18,6 +18,19 @@ from app.models.task import Task, TaskStatus
 from app.models.financial import Expense, Income, ApprovalStatus
 from app.models.time_entry import TimeEntry
 from app.core.deps import get_current_user_from_token
+
+
+async def run_aggregation(model, pipeline: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Helper function to run MongoDB aggregation pipeline"""
+    # Get the collection name from the model's Settings class
+    collection_name = model.Settings.name if hasattr(model.Settings, 'name') else model.__name__.lower() + 's'
+    # Access the motor database through Beanie's internal settings
+    from app.core.database import mongodb
+    from app.core.config import settings
+    db = mongodb.client[settings.MONGODB_DB_NAME]
+    collection = db[collection_name]
+    cursor = collection.aggregate(pipeline)
+    return await cursor.to_list(length=None)
 
 
 router = APIRouter(prefix="/dashboard", tags=["dashboard"])
@@ -112,7 +125,7 @@ async def get_dashboard_summary(
             {"$group": {"_id": "$project_id"}},
             {"$count": "total"}
         ]
-        result = await Task.aggregate(pipeline).to_list()
+        result = await run_aggregation(Task, pipeline)
         total_projects = result[0]["total"] if result else 0
 
     # Active Tasks
@@ -135,7 +148,7 @@ async def get_dashboard_summary(
         {"$match": {"budget": {"$ne": None}}},
         {"$group": {"_id": None, "total": {"$sum": "$budget"}}}
     ]
-    total_budget_result = await Project.aggregate(pipeline_budget).to_list()
+    total_budget_result = await run_aggregation(Project, pipeline_budget)
     total_budget = total_budget_result[0]["total"] if total_budget_result else 0
 
     # Calculate total approved expenses
@@ -143,7 +156,7 @@ async def get_dashboard_summary(
         {"$match": {"approval_status": ApprovalStatus.APPROVED.value}}, # Access enum value
         {"$group": {"_id": None, "total": {"$sum": "$amount"}}}
     ]
-    total_expenses_result = await Expense.aggregate(pipeline_expenses).to_list()
+    total_expenses_result = await run_aggregation(Expense, pipeline_expenses)
     total_expenses = total_expenses_result[0]["total"] if total_expenses_result else 0
 
     budget_utilization = (total_expenses / total_budget * 100) if total_budget > 0 else 0
@@ -153,14 +166,14 @@ async def get_dashboard_summary(
     pipeline_income = [
         {"$group": {"_id": None, "total": {"$sum": "$amount"}}}
     ]
-    total_income_result = await Income.aggregate(pipeline_income).to_list()
+    total_income_result = await run_aggregation(Income, pipeline_income)
     total_income = total_income_result[0]["total"] if total_income_result else 0
 
     # Labor costs from time entries (assuming $50/hour default)
     pipeline_labor = [
         {"$group": {"_id": None, "total": {"$sum": "$duration_minutes"}}}
     ]
-    total_minutes_result = await TimeEntry.aggregate(pipeline_labor).to_list()
+    total_minutes_result = await run_aggregation(TimeEntry, pipeline_labor)
     total_minutes = total_minutes_result[0]["total"] if total_minutes_result else 0
     labor_costs = (total_minutes / 60) * 50  # $50/hour
 
@@ -234,7 +247,7 @@ async def get_expense_breakdown(
         {"$sort": {"total_amount": -1}}
     ]
 
-    breakdown = await Expense.aggregate(pipeline).to_list()
+    breakdown = await run_aggregation(Expense, pipeline)
 
     return [
         ExpenseBreakdownItem(
@@ -275,7 +288,7 @@ async def get_task_completion(
         }}
     ])
 
-    completion = await Task.aggregate(pipeline).to_list()
+    completion = await run_aggregation(Task, pipeline)
 
     return [
         TaskCompletionItem(
@@ -310,7 +323,7 @@ async def get_project_profit_loss(
         {"$match": {"project_id": str(project_id)}},  # Convert ObjectId to string
         {"$group": {"_id": None, "total": {"$sum": "$amount"}}}
     ]
-    total_income_result = await Income.aggregate(pipeline_income).to_list()
+    total_income_result = await run_aggregation(Income, pipeline_income)
     total_income = total_income_result[0]["total"] if total_income_result else 0
 
     # Calculate approved expenses
@@ -321,7 +334,7 @@ async def get_project_profit_loss(
         }},
         {"$group": {"_id": None, "total": {"$sum": "$amount"}}}
     ]
-    total_approved_expenses_result = await Expense.aggregate(pipeline_expenses).to_list()
+    total_approved_expenses_result = await run_aggregation(Expense, pipeline_expenses)
     total_approved_expenses = total_approved_expenses_result[0]["total"] if total_approved_expenses_result else 0
 
     # Calculate labor costs from time entries
@@ -333,7 +346,7 @@ async def get_project_profit_loss(
         {"$match": {"task_id": {"$in": task_ids_in_project}}},
         {"$group": {"_id": None, "total": {"$sum": "$duration_minutes"}}}
     ]
-    total_minutes_result = await TimeEntry.aggregate(pipeline_labor).to_list()
+    total_minutes_result = await run_aggregation(TimeEntry, pipeline_labor)
     total_minutes = total_minutes_result[0]["total"] if total_minutes_result else 0
     labor_costs = (total_minutes / 60) * 50  # $50/hour
 
@@ -372,7 +385,7 @@ async def get_income_breakdown(
         {"$sort": {"total_amount": -1}}
     ]
 
-    breakdown = await Income.aggregate(pipeline).to_list()
+    breakdown = await run_aggregation(Income, pipeline)
 
     result = []
     for row in breakdown:
@@ -428,7 +441,7 @@ async def get_projects_profit_loss(
             {"$match": {"project_id": str(project.id)}},
             {"$group": {"_id": None, "total": {"$sum": "$amount"}}}
         ]
-        total_income_result = await Income.aggregate(pipeline_income).to_list()
+        total_income_result = await run_aggregation(Income, pipeline_income)
         total_income = total_income_result[0]["total"] if total_income_result else 0
 
         # Calculate approved expenses for this project
@@ -439,7 +452,7 @@ async def get_projects_profit_loss(
             }},
             {"$group": {"_id": None, "total": {"$sum": "$amount"}}}
         ]
-        total_expenses_result = await Expense.aggregate(pipeline_expenses).to_list()
+        total_expenses_result = await run_aggregation(Expense, pipeline_expenses)
         total_expenses = total_expenses_result[0]["total"] if total_expenses_result else 0
 
         # Calculate labor costs
@@ -450,7 +463,7 @@ async def get_projects_profit_loss(
             {"$match": {"task_id": {"$in": task_ids_in_project}}},
             {"$group": {"_id": None, "total": {"$sum": "$duration_minutes"}}}
         ]
-        total_minutes_result = await TimeEntry.aggregate(pipeline_labor).to_list()
+        total_minutes_result = await run_aggregation(TimeEntry, pipeline_labor)
         total_minutes = total_minutes_result[0]["total"] if total_minutes_result else 0
         labor_costs = (total_minutes / 60) * 50  # $50/hour
 

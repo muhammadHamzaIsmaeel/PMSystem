@@ -15,6 +15,16 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def hash_password(password: str) -> str:
+    """
+    Hash a password using bcrypt.
+
+    Args:
+        password: Plain text password to hash
+
+    Returns:
+        Hashed password string
+    """
+    # Truncate password to bcrypt limit (72 bytes) before hashing
     password_bytes = password.encode("utf-8")
     password_bytes = password_bytes[:72]  # bcrypt hard limit
     return pwd_context.hash(password_bytes)
@@ -32,7 +42,10 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     Returns:
         True if password matches, False otherwise
     """
-    return pwd_context.verify(plain_password, hashed_password)
+    # Truncate password to bcrypt limit (72 bytes) to match hash creation
+    password_bytes = plain_password.encode("utf-8")
+    password_bytes = password_bytes[:72]  # bcrypt hard limit
+    return pwd_context.verify(password_bytes, hashed_password)
 
 
 def create_access_token(

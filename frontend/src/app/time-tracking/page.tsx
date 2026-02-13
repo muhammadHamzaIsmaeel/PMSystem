@@ -1,29 +1,37 @@
 /**
  * Time Tracking Page
- * Displays a list of time entries and allows adding/editing new ones.
- * Fully responsive design with mobile-friendly table
+ * Comprehensive time tracking with live timer, analytics, and entry management
  */
 
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
 import { apiClient } from '@/lib/api'
-import { TimeEntry, TimeEntryCreate, TimeEntryResponse } from '@/types/financial'
-import { TimeEntryForm } from '@/components/timeTracking/TimeEntryForm'
+import { TimeEntry, TimeEntryCreate, TimeEntryResponse, TimerStatus } from '@/types/financial'
 import { Task } from '@/types/task'
+import { Project } from '@/types/project'
+import { LiveTimer } from '@/components/timeTracking/LiveTimer'
+import { TimeSummary } from '@/components/timeTracking/TimeSummary'
+import { TimeEntryList } from '@/components/timeTracking/TimeEntryList'
+import { TimeEntryForm } from '@/components/timeTracking/TimeEntryForm'
+
+type TabType = 'timer' | 'entries' | 'analytics' | 'manual'
 
 export default function TimeTrackingPage() {
   const router = useRouter()
   const { user } = useAuth()
 
+  const [activeTab, setActiveTab] = useState<TabType>('timer')
   const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([])
   const [tasks, setTasks] = useState<Task[]>([])
+  const [projects, setProjects] = useState<Project[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isFormLoading, setIsFormLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [editingEntry, setEditingEntry] = useState<TimeEntry | null>(null)
+  const [refreshTrigger, setRefreshTrigger] = useState(0)
 
   useEffect(() => {
     if (!user) {
@@ -33,25 +41,36 @@ export default function TimeTrackingPage() {
     fetchData()
   }, [user])
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setIsLoading(true)
       setError(null)
-      const [timeEntriesRes, tasksRes] = await Promise.all([
-        apiClient.get<TimeEntryResponse>('/time-entries'),
+      const [timeEntriesRes, tasksRes, projectsRes] = await Promise.all([
+        apiClient.get<TimeEntryResponse>('/time-entries?limit=50'),
         apiClient.get<any>('/tasks?limit=100'),
+        apiClient.get<any>('/projects?limit=100'),
       ])
       setTimeEntries(timeEntriesRes.items || [])
       setTasks(tasksRes.items || [])
+      setProjects(projectsRes.items || [])
     } catch (err) {
       console.error('Error fetching data:', err)
-      setError('Failed to load time entries or tasks.')
+      setError('Failed to load data.')
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [])
 
-  const handleFormSubmit = async (data: TimeEntryCreate) => {
+  const handleTimerStop = useCallback((entry: TimeEntry) => {
+    setTimeEntries((prev) => [entry, ...prev.filter((e) => e.id !== entry.id)])
+    setRefreshTrigger((prev) => prev + 1)
+  }, [])
+
+  const handleTimerStart = useCallback((entry: TimeEntry) => {
+    setTimeEntries((prev) => [entry, ...prev])
+  }, [])
+
+  const handleManualSubmit = async (data: TimeEntryCreate) => {
     try {
       setIsFormLoading(true)
       setError(null)
@@ -62,6 +81,8 @@ export default function TimeTrackingPage() {
       }
       setEditingEntry(null)
       await fetchData()
+      setRefreshTrigger((prev) => prev + 1)
+      setActiveTab('entries')
     } catch (err) {
       console.error('Error saving time entry:', err)
       setError('Failed to save time entry.')
@@ -71,14 +92,19 @@ export default function TimeTrackingPage() {
   }
 
   const handleDelete = async (entryId: string) => {
-    if (!confirm('Are you sure you want to delete this time entry?')) return
     try {
       await apiClient.delete(`/time-entries/${entryId}`)
-      await fetchData()
+      setTimeEntries((prev) => prev.filter((e) => e.id !== entryId))
+      setRefreshTrigger((prev) => prev + 1)
     } catch (err) {
       console.error('Error deleting time entry:', err)
       setError('Failed to delete time entry.')
     }
+  }
+
+  const handleEdit = (entry: TimeEntry) => {
+    setEditingEntry(entry)
+    setActiveTab('manual')
   }
 
   if (!user) return null
@@ -89,18 +115,42 @@ export default function TimeTrackingPage() {
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-slate-600">Loading time entries...</p>
+            <p className="text-slate-600">Loading time tracking...</p>
           </div>
         </div>
       </div>
     )
   }
 
+  // Get today's total
+  const todayTotal = timeEntries
+    .filter((e) => {
+      const entryDate = new Date(e.start_time).toDateString()
+      const today = new Date().toDateString()
+      return entryDate === today && e.status === TimerStatus.COMPLETED
+    })
+    .reduce((sum, e) => sum + e.duration_seconds, 0)
+
+  const formatTodayTotal = () => {
+    const hrs = Math.floor(todayTotal / 3600)
+    const mins = Math.floor((todayTotal % 3600) / 60)
+    return `${hrs}h ${mins}m`
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
+      {/* Header */}
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-slate-800">Time Tracking</h1>
-        <p className="text-slate-600 mt-2">Log and manage your work hours.</p>
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-800">Time Tracking</h1>
+            <p className="text-slate-600 mt-1">Track your work hours and activity</p>
+          </div>
+          <div className="bg-white border border-slate-200 rounded-lg px-4 py-2 shadow-sm">
+            <p className="text-sm text-slate-500">Today&apos;s Total</p>
+            <p className="text-2xl font-bold text-blue-600">{formatTodayTotal()}</p>
+          </div>
+        </div>
       </div>
 
       {error && (
@@ -115,235 +165,132 @@ export default function TimeTrackingPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        {/* Time Entry Form */}
-        <div className="xl:col-span-1">
-          <div className="bg-white border border-slate-200 rounded-lg shadow-sm p-6 sticky top-4">
-            <h2 className="text-2xl font-bold text-slate-800 mb-4">
-              {editingEntry ? 'Edit Time Entry' : 'New Time Entry'}
-            </h2>
-            <TimeEntryForm
-              initialData={
-                editingEntry
-                  ? {
-                      task_id: editingEntry.task_id,
-                      start_time: new Date(editingEntry.start_time)
-                        .toISOString()
-                        .slice(0, 16),
-                      end_time: new Date(editingEntry.end_time)
-                        .toISOString()
-                        .slice(0, 16),
-                      description: editingEntry.description || undefined,
-                    }
-                  : undefined
-              }
-              onSubmit={handleFormSubmit}
-              onCancel={editingEntry ? () => setEditingEntry(null) : undefined}
-              isLoading={isFormLoading}
-              tasks={tasks}
-            />
-          </div>
-        </div>
+      {/* Tabs */}
+      <div className="mb-6 border-b border-slate-200">
+        <nav className="flex gap-4 -mb-px">
+          {[
+            { id: 'timer', label: 'Live Timer', icon: '⏱️' },
+            { id: 'entries', label: 'Time Entries', icon: '📋' },
+            { id: 'analytics', label: 'Analytics', icon: '📊' },
+            { id: 'manual', label: 'Manual Entry', icon: '✏️' },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as TabType)}
+              className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === tab.id
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300'
+              }`}
+            >
+              <span className="mr-2">{tab.icon}</span>
+              {tab.label}
+            </button>
+          ))}
+        </nav>
+      </div>
 
-        {/* Time Entries List */}
-        <div className="xl:col-span-2">
-          <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
-            <div className="p-6 border-b border-slate-200">
-              <h2 className="text-2xl font-bold text-slate-800">All Time Entries</h2>
-              <p className="text-sm text-slate-600 mt-1">
-                Total: {timeEntries.length} {timeEntries.length === 1 ? 'entry' : 'entries'}
-              </p>
+      {/* Tab Content */}
+      <div className="mt-6">
+        {/* Live Timer Tab */}
+        {activeTab === 'timer' && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-1">
+              <LiveTimer
+                tasks={tasks}
+                projects={projects}
+                onTimerStop={handleTimerStop}
+                onTimerStart={handleTimerStart}
+              />
+
+              {/* Quick Stats */}
+              <div className="mt-6 bg-white border border-slate-200 rounded-lg shadow-sm p-4">
+                <h3 className="font-semibold text-slate-800 mb-3">Today&apos;s Activity</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-slate-600">Total Time</span>
+                    <span className="font-medium text-slate-900">{formatTodayTotal()}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-slate-600">Entries</span>
+                    <span className="font-medium text-slate-900">
+                      {timeEntries.filter((e) => {
+                        const entryDate = new Date(e.start_time).toDateString()
+                        const today = new Date().toDateString()
+                        return entryDate === today
+                      }).length}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            {timeEntries.length === 0 ? (
-              <div className="text-center py-12 text-slate-600">
-                <svg
-                  className="mx-auto h-12 w-12 text-slate-400 mb-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-                <p className="text-lg font-medium">No time entries logged yet</p>
-                <p className="text-sm mt-1">Start by adding your first time entry</p>
-              </div>
-            ) : (
-              <>
-                {/* Desktop Table View */}
-                <div className="hidden lg:block overflow-x-auto">
-                  <table className="min-w-full divide-y divide-slate-200">
-                    <thead className="bg-slate-50">
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase tracking-wider">
-                          Task
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase tracking-wider">
-                          Start Time
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase tracking-wider">
-                          End Time
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase tracking-wider">
-                          Duration
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase tracking-wider">
-                          Description
-                        </th>
-                        <th className="px-6 py-3 text-right text-xs font-medium text-slate-700 uppercase tracking-wider">
-                          Actions
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-slate-200">
-                      {timeEntries.map((entry) => {
-                        const durationMins =
-                          (new Date(entry.end_time).getTime() -
-                            new Date(entry.start_time).getTime()) /
-                          60000
-                        const hours = Math.floor(durationMins / 60)
-                        const minutes = Math.floor(durationMins % 60)
-                        const durationDisplay = `${hours}h ${minutes}m`
-                        const taskTitle =
-                          tasks.find((t) => t.id === entry.task_id)?.title ||
-                          entry.task_id
-
-                        return (
-                          <tr key={entry.id} className="hover:bg-slate-50">
-                            <td className="px-6 py-4 text-sm font-medium text-slate-900">
-                              {taskTitle}
-                            </td>
-                            <td className="px-6 py-4 text-sm text-slate-700 whitespace-nowrap">
-                              {new Date(entry.start_time).toLocaleString('en-US', {
-                                month: 'short',
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                              })}
-                            </td>
-                            <td className="px-6 py-4 text-sm text-slate-700 whitespace-nowrap">
-                              {new Date(entry.end_time).toLocaleString('en-US', {
-                                month: 'short',
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                              })}
-                            </td>
-                            <td className="px-6 py-4 text-sm text-slate-700 whitespace-nowrap font-medium">
-                              {durationDisplay}
-                            </td>
-                            <td className="px-6 py-4 text-sm text-slate-700 max-w-xs truncate">
-                              {entry.description || '-'}
-                            </td>
-                            <td className="px-6 py-4 text-right text-sm font-medium whitespace-nowrap">
-                              <button
-                                onClick={() => setEditingEntry(entry)}
-                                className="text-blue-600 hover:text-blue-800 mr-4"
-                              >
-                                Edit
-                              </button>
-                              <button
-                                onClick={() => handleDelete(entry.id)}
-                                className="text-red-600 hover:text-red-800"
-                              >
-                                Delete
-                              </button>
-                            </td>
-                          </tr>
-                        )
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Mobile Card View */}
-                <div className="lg:hidden divide-y divide-slate-200">
-                  {timeEntries.map((entry) => {
-                    const durationMins =
-                      (new Date(entry.end_time).getTime() -
-                        new Date(entry.start_time).getTime()) /
-                      60000
-                    const hours = Math.floor(durationMins / 60)
-                    const minutes = Math.floor(durationMins % 60)
-                    const durationDisplay = `${hours}h ${minutes}m`
-                    const taskTitle =
-                      tasks.find((t) => t.id === entry.task_id)?.title ||
-                      entry.task_id
-
-                    return (
-                      <div key={entry.id} className="p-6 hover:bg-slate-50">
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex-1">
-                            <h3 className="text-base font-semibold text-slate-900 mb-1">
-                              {taskTitle}
-                            </h3>
-                            <p className="text-sm text-slate-600 font-medium">
-                              Duration: {durationDisplay}
-                            </p>
-                          </div>
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                            {durationDisplay}
-                          </span>
-                        </div>
-
-                        <div className="space-y-2 mb-4">
-                          <div className="flex items-center text-sm">
-                            <span className="text-slate-600 w-20">Start:</span>
-                            <span className="text-slate-900 font-medium">
-                              {new Date(entry.start_time).toLocaleString('en-US', {
-                                month: 'short',
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                              })}
-                            </span>
-                          </div>
-                          <div className="flex items-center text-sm">
-                            <span className="text-slate-600 w-20">End:</span>
-                            <span className="text-slate-900 font-medium">
-                              {new Date(entry.end_time).toLocaleString('en-US', {
-                                month: 'short',
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                              })}
-                            </span>
-                          </div>
-                          {entry.description && (
-                            <div className="flex items-start text-sm mt-2">
-                              <span className="text-slate-600 w-20 flex-shrink-0">Note:</span>
-                              <span className="text-slate-700">{entry.description}</span>
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="flex gap-3">
-                          <button
-                            onClick={() => setEditingEntry(entry)}
-                            className="flex-1 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => handleDelete(entry.id)}
-                            className="flex-1 px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              </>
-            )}
+            <div className="lg:col-span-2">
+              <h3 className="font-semibold text-slate-800 mb-4">Recent Entries</h3>
+              <TimeEntryList
+                entries={timeEntries.slice(0, 5)}
+                tasks={tasks}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+              />
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* Time Entries Tab */}
+        {activeTab === 'entries' && (
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-slate-800">All Time Entries</h3>
+              <span className="text-sm text-slate-600">
+                {timeEntries.length} entries
+              </span>
+            </div>
+            <TimeEntryList
+              entries={timeEntries}
+              tasks={tasks}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+            />
+          </div>
+        )}
+
+        {/* Analytics Tab */}
+        {activeTab === 'analytics' && (
+          <TimeSummary refreshTrigger={refreshTrigger} />
+        )}
+
+        {/* Manual Entry Tab */}
+        {activeTab === 'manual' && (
+          <div className="max-w-2xl">
+            <div className="bg-white border border-slate-200 rounded-lg shadow-sm p-6">
+              <h2 className="text-xl font-bold text-slate-800 mb-4">
+                {editingEntry ? 'Edit Time Entry' : 'Add Manual Time Entry'}
+              </h2>
+              <p className="text-sm text-slate-600 mb-6">
+                Manually log time for work you&apos;ve already completed
+              </p>
+              <TimeEntryForm
+                initialData={
+                  editingEntry
+                    ? {
+                        task_id: editingEntry.task_id || '',
+                        start_time: new Date(editingEntry.start_time).toISOString().slice(0, 16),
+                        end_time: editingEntry.end_time
+                          ? new Date(editingEntry.end_time).toISOString().slice(0, 16)
+                          : '',
+                        description: editingEntry.description || undefined,
+                      }
+                    : undefined
+                }
+                onSubmit={handleManualSubmit}
+                onCancel={editingEntry ? () => setEditingEntry(null) : undefined}
+                isLoading={isFormLoading}
+                tasks={tasks}
+              />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

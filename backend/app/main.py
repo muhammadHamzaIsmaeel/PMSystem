@@ -10,6 +10,7 @@ from contextlib import asynccontextmanager
 
 from app.core.config import settings
 from app.core.database import connect_to_mongo, close_mongo_connection
+from app.background_tasks import start_background_services, stop_background_services
 from app.core.exceptions import (
     BadRequestException,
     ForbiddenException,
@@ -35,11 +36,18 @@ async def lifespan(app: FastAPI):
     print("🚀 Starting up...")
     await connect_to_mongo()
     print("✅ MongoDB connected successfully")
+    
+    # Start background services
+    await start_background_services()
+    print("✅ Background services started")
 
     yield
 
     # Shutdown
     print("🛑 Shutting down...")
+    # Stop background services
+    await stop_background_services()
+    print("✅ Background services stopped")
     await close_mongo_connection()
     print("✅ MongoDB disconnected successfully")
 

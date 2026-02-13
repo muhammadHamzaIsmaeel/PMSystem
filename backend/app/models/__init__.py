@@ -8,7 +8,7 @@ from app.models.user import User, UserRole
 from app.models.project import Project, ProjectStatus
 from app.models.task import Task, TaskStatus, TaskPriority
 from app.models.financial import Expense, Income, ApprovalStatus
-from app.models.time_entry import TimeEntry
+from app.models.time_entry import TimeEntry, TimerStatus, Screenshot, ActivityLog
 from app.models.notification import Notification, NotificationType
 
 __all__ = [
@@ -23,6 +23,9 @@ __all__ = [
     "Income",
     "ApprovalStatus",
     "TimeEntry",
+    "TimerStatus",
+    "Screenshot",
+    "ActivityLog",
     "Notification",
     "NotificationType",
 ]

@@ -21,8 +21,8 @@ COPY pyproject.toml ./
 RUN uv venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Install dependencies (will be added in Phase 2)
-# RUN uv pip install -r pyproject.toml
+# Install dependencies
+RUN uv pip install -r pyproject.toml
 
 # Stage 2: Runtime
 FROM python:3.12-slim
@@ -34,6 +34,9 @@ RUN apt-get update && apt-get install -y \
     postgresql-client \
     curl \
     && rm -rf /var/lib/apt/lists/*
+
+# Set environment variable to indicate Docker environment
+ENV DOCKER_ENV=true
 
 # Copy virtual environment from builder
 COPY --from=builder /opt/venv /opt/venv
